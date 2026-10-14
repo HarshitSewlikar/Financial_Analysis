@@ -1,5 +1,6 @@
 # Python / Django
 .venv/
+venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -7,8 +8,24 @@ __pycache__/
 logs/
 staticfiles/
 
-# Local environment (never commit real secrets)
-.env
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
 
-# Local SQLite fallback (not used in normal operation)
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
 db.sqlite3
+
+# Logs
+*.log
+
+# IDE and OS files
+.vscode/
+.DS_Store
+Thumbs.db
