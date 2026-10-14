@@ -128,9 +128,7 @@ const DashboardPage = () => {
 
     return (
         <div className="dashboard-container"> {/* Use dashboard-container class */}
-            <h1 className="text-center">Financial Analytics Dashboard</h1>
-            <p className="text-center text-muted">Real-time insights for better decisions.</p>
-            <hr />
+            <p className="text-center text-muted">Real-time insights for better decisions.</p>            <hr />
 
             {/* Controls Section: Symbol Selector and Time Range Filter */}
             <div className="controls-section"> {/* Use controls-section class */}

@@ -5,7 +5,8 @@ const cache = new Map();
 const CACHE_DURATION_MS = {
     DAILY_STOCK: 5 * 60 * 1000,         // 5 minutes for daily stock data
     SECTOR_PERFORMANCE: 60 * 60 * 1000, // 1 hour for sector performance
-    TOP_LISTS: 15 * 60 * 1000           // 15 minutes for top gainers/losers
+    TOP_LISTS: 15 * 60 * 1000,          // 15 minutes for top gainers/losers
+    MOCK_DATA: 60 * 1000                // 1 minute for fallback data (retry live sooner)
 };
 
 /**
@@ -21,8 +22,9 @@ const getCachedData = (key, durationKey) => {
     }
 
     if (cache.has(key)) {
-        const { data, timestamp } = cache.get(key);
-        if (Date.now() - timestamp < CACHE_DURATION_MS[durationKey]) {
+        const { data, timestamp, source } = cache.get(key);
+        const effectiveDurationKey = source === 'mock' ? 'MOCK_DATA' : durationKey;
+        if (Date.now() - timestamp < CACHE_DURATION_MS[effectiveDurationKey]) {
             console.log(`Cache hit for ${key}`);
             return data;
         } else {
@@ -38,9 +40,10 @@ const getCachedData = (key, durationKey) => {
  * Stores data in the cache with a timestamp.
  * @param {string} key - The unique key for the data.
  * @param {any} data - The data to cache.
+ * @param {string} source - Origin of the data ('live' or 'mock').
  */
-const setCacheData = (key, data) => {
-    cache.set(key, { data, timestamp: Date.now() });
+const setCacheData = (key, data, source = 'live') => {
+    cache.set(key, { data, timestamp: Date.now(), source });
     console.log(`Data cached for ${key}`);
 };
 

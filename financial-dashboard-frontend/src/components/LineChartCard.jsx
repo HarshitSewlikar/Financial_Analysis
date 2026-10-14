@@ -11,13 +11,16 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { format } from 'date-fns';
+import { prepareLineData } from '../utils/chartData';
 
 const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
     if (!data || data.length === 0) {
         return <div className="card text-center text-muted">No data available for {title} chart.</div>;
     }
 
-    const displayData = data.slice(-90);
+    // Data arrives sorted ascending (oldest first) and already filtered by the
+    // selected time range. Render it as-is so the X axis is chronological.
+    const displayData = prepareLineData(data);
 
     return (
         <div className="card"> {/* Use card class */}
@@ -36,7 +39,6 @@ const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
                     <XAxis
                         dataKey="date"
                         tickFormatter={(value) => format(new Date(value), 'MMM dd')}
-                        reversed={true}
                     />
                     <YAxis domain={['auto', 'auto']} />
                     <Tooltip

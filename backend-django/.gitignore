@@ -1,0 +1,14 @@
+# Python / Django
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+logs/
+staticfiles/
+
+# Local environment (never commit real secrets)
+.env
+
+# Local SQLite fallback (not used in normal operation)
+db.sqlite3

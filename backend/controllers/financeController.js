@@ -3,6 +3,12 @@ const { getCachedData, setCacheData } = require('../config/cache.js');
 const alphaVantage = require('../utils/alphaVantage.js');
 const { calculateStockScore } = require('../utils/stockScoreCalculator.js');
 
+// Send cached/live data along with the data-source header ('live' or 'mock')
+const respondWithSource = (res, result) => {
+    res.set('X-Data-Source', result.source || 'live');
+    res.json(result.data);
+};
+
 // Controller for daily stock data
 const getDailyStockData = async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
@@ -11,16 +17,15 @@ const getDailyStockData = async (req, res) => {
     try {
         const cachedData = getCachedData(cacheKey, 'DAILY_STOCK');
         if (cachedData) {
-            return res.json(cachedData);
+            return respondWithSource(res, cachedData);
         }
 
-        const data = await alphaVantage.fetchDailyStockData(symbol);
-        setCacheData(cacheKey, data);
-        res.json(data);
+        const result = await alphaVantage.fetchDailyStockData(symbol);
+        setCacheData(cacheKey, result, result.source);
+        respondWithSource(res, result);
 
     } catch (error) {
         console.error(`Error in getDailyStockData for ${symbol}:`, error.message);
-        // Respond with 400 for API specific errors, 500 for others
         const statusCode = error.message.includes("Alpha Vantage API") ? 400 : 500;
         res.status(statusCode).json({ error: error.message });
     }
@@ -33,12 +38,12 @@ const getSectorPerformance = async (req, res) => {
     try {
         const cachedData = getCachedData(cacheKey, 'SECTOR_PERFORMANCE');
         if (cachedData) {
-            return res.json(cachedData);
+            return respondWithSource(res, cachedData);
         }
 
-        const data = await alphaVantage.fetchSectorPerformanceData();
-        setCacheData(cacheKey, data);
-        res.json(data);
+        const result = await alphaVantage.fetchSectorPerformanceData();
+        setCacheData(cacheKey, result, result.source);
+        respondWithSource(res, result);
 
     } catch (error) {
         console.error('Error in getSectorPerformance:', error.message);
@@ -54,12 +59,12 @@ const getMarketMovers = async (req, res) => {
     try {
         const cachedData = getCachedData(cacheKey, 'TOP_LISTS');
         if (cachedData) {
-            return res.json(cachedData);
+            return respondWithSource(res, cachedData);
         }
 
-        const data = await alphaVantage.fetchMarketMoversData();
-        setCacheData(cacheKey, data);
-        res.json(data);
+        const result = await alphaVantage.fetchMarketMoversData();
+        setCacheData(cacheKey, result, result.source);
+        respondWithSource(res, result);
 
     } catch (error) {
         console.error('Error in getMarketMovers:', error.message);
@@ -68,18 +73,19 @@ const getMarketMovers = async (req, res) => {
     }
 };
 
-// NEW Controller for stock score
+// Controller for stock score
 const getStockScore = async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
     const cacheKey = `stock_score_${symbol}`;
 
     try {
-        const cachedData = getCachedData(cacheKey, 'DAILY_STOCK'); // Use DAILY_STOCK duration for score as it depends on daily data
+        const cachedData = getCachedData(cacheKey, 'DAILY_STOCK');
         if (cachedData) {
-            return res.json(cachedData);
+            return respondWithSource(res, cachedData);
         }
 
-        const dailyData = await alphaVantage.fetchDailyStockData(symbol);
+        const dailyResult = await alphaVantage.fetchDailyStockData(symbol);
+        const dailyData = dailyResult.data;
 
         if (!dailyData || dailyData.length === 0) {
             return res.status(404).json({ error: "No daily data available for this symbol to calculate score." });
@@ -91,8 +97,9 @@ const getStockScore = async (req, res) => {
             return res.status(500).json({ error: "Failed to calculate stock score due to insufficient data or calculation error." });
         }
 
-        setCacheData(cacheKey, scoreResult);
-        res.json(scoreResult);
+        const result = { data: scoreResult, source: dailyResult.source };
+        setCacheData(cacheKey, result, result.source);
+        respondWithSource(res, result);
 
     } catch (error) {
         console.error(`Error in getStockScore for ${symbol}:`, error.message);

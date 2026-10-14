@@ -1,20 +1,13 @@
 // src/App.jsx
-import React from 'react';
-import DashboardPage from './pages/DashboardPage';
-import './App.css'; // Import App-specific styles
-import './index.css'; // Import global styles (ensure this is present)
+import React from 'react'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="app-header">
-        <h1>Financial Analytics Dashboard</h1>
-      </header>
-      <main className="app-main">
-        <DashboardPage />
-      </main>
-    </div>
-  );
-}
+import { AuthProvider } from './features/auth/AuthProvider'
+import { AppRoutes } from './app/router'
 
-export default App;
+const App = () => (
+  <AuthProvider>
+    <AppRoutes />
+  </AuthProvider>
+)
+
+export default App

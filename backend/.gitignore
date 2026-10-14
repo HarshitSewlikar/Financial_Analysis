@@ -1,6 +1,7 @@
 # backend/.gitignore
 node_modules/
 .env
+data/
 npm-debug.log*
 yarn-debug.log*
 .DS_Store
