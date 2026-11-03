@@ -1,0 +1,15 @@
+Django==5.2.18
+djangorestframework==3.17.2
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+django-filter==25.2
+argon2-cffi==25.1.0
+bcrypt==5.0.0
+mysqlclient==2.3.0
+python-dotenv==1.2.4
+requests==2.34.2
+# Test
+pytest==9.1.1
+pytest-django==4.14.0
+# Production (Linux only; not installed on Windows dev)
+gunicorn==23.0.0; sys_platform != "win32"

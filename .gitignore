@@ -1,0 +1,54 @@
+# Local migration backups contain secrets and must not be committed.
+backups/
+
+# Environment variables and secrets (keep .env.example templates tracked)
+.env
+.env.*
+!**/.env.example
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Python virtual environments
+.venv/
+.venv-*/
+venv/
+
+# Local databases
+db.sqlite3
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Node.js dependencies and build output
+node_modules/
+dist/
+build/
+
+# Pytest cache and coverage output
+.pytest_cache/
+.coverage
+coverage/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Deployment files — excluded for now
+deployment-staging/
+
+# Large video file
+Financial Dashboard.mp4
+
+# Ignore unused root-level lockfile
+/package-lock.json
+
+# Deployment-specific tests — excluded until deployment work begins
+backend-django/tests_sqlserver/test_deployment_artifacts.py
+backend-django/tests_sqlserver/test_deployment_identity_isolation.py
+backend-django/tests_sqlserver/test_deployment_settings.py
+backend-django/tests_sqlserver/test_deployment_sql_contract.py
