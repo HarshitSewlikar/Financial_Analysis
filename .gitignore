@@ -52,3 +52,7 @@ backend-django/tests_sqlserver/test_deployment_artifacts.py
 backend-django/tests_sqlserver/test_deployment_identity_isolation.py
 backend-django/tests_sqlserver/test_deployment_settings.py
 backend-django/tests_sqlserver/test_deployment_sql_contract.py
+
+# Internal architecture and migration documents
+docs/ARCHITECTURE_REVIEW.md
+docs/MYSQL_TO_SQLSERVER_MIGRATION_PLAN.md

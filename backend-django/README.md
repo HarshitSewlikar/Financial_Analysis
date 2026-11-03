@@ -1,44 +1,76 @@
 # Financial Analytics Dashboard — Django Backend
 
-Django 5 + Django REST Framework backend for the Financial Analytics
-Dashboard. It replaces the legacy Express service while preserving the market
-data endpoints and adding JWT authentication, role-based access control,
-navigation menus, to-dos, and audit logging on MySQL 8.
+Django 5 + Django REST Framework backend for the Financial Analytics Dashboard. It provides JWT authentication, role-based access control (RBAC), navigation menus, to-dos, audit logging, and market data integration. The default database is MySQL 8; Microsoft SQL Server is supported via `config/settings_sqlserver.py`.
 
 ## Requirements
 
 - Python 3.11+
-- MySQL 8 (InnoDB, `utf8mb4`)
+- MySQL 8 (InnoDB, `utf8mb4`) — default backend
+- **or** SQL Server with Microsoft ODBC Driver 18 — alternative backend via `settings_sqlserver.py`
 - Node.js 18+ (only for the optional stock-score parity test)
 
 ## Setup
 
-```bash
+```powershell
 cd backend-django
 python -m venv .venv
-.venv/Scripts/activate        # Windows
-# source .venv/bin/activate    # macOS/Linux
+.venv/Scripts/Activate.ps1        # Windows
+# source .venv/bin/activate        # macOS/Linux
 pip install -r requirements.txt
-
-cp .env.example .env          # then edit values
 ```
 
-Create the database and a least-privilege user (root/bootstrap only):
+Copy the environment template and fill in real values:
+
+```powershell
+cp .env.example .env
+# Edit .env: set DJANGO_SECRET_KEY, DB_PASSWORD, ADMIN_SIGNUP_CODE, and other values
+```
+
+### Required environment variables
+
+- `DJANGO_SECRET_KEY` — mandatory. Generate with:
+  ```powershell
+  python -c "import secrets; print(secrets.token_urlsafe(64))"
+  ```
+- `DB_PASSWORD` — mandatory for the MySQL configuration. No insecure fallback is used.
+- `ADMIN_SIGNUP_CODE` — one-time code to create the first administrator.
+
+`settings.py` raises a `RuntimeError` if `DJANGO_SECRET_KEY` or `DB_PASSWORD` (MySQL) is missing. `.env` is git-ignored and must never be committed.
+
+## Configure the database
+
+### MySQL (default)
+
+Create the database and a least-privilege user:
 
 ```sql
 CREATE DATABASE financial_dashboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'finapp'@'localhost' IDENTIFIED BY 'finapp_dev_pw';
+CREATE USER 'finapp'@'localhost' IDENTIFIED BY '<your-password>';
 GRANT ALL PRIVILEGES ON financial_dashboard.* TO 'finapp'@'localhost';
 CREATE DATABASE test_financial_dashboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL PRIVILEGES ON test_financial_dashboard.* TO 'finapp'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-Apply migrations and seed the RBAC catalog:
+Set `DB_PASSWORD` in `.env` to match the MySQL user password.
 
-```bash
+### Microsoft SQL Server (alternative)
+
+`config/settings_sqlserver.py` overrides the database configuration to use the `mssql` backend with Windows Integrated Authentication (`Trusted_Connection=yes`). It uses `mssql-django`, `pyodbc`, and the Microsoft ODBC Driver 18 for SQL Server.
+
+```powershell
+$env:DJANGO_SETTINGS_MODULE = "config.settings_sqlserver"
+pip install -r requirements-sqlserver.txt
 python manage.py migrate
-python manage.py seed_rbac      # 22 permissions, 3 roles, 7 menus
+```
+
+No `DB_PASSWORD` is required for SQL Server.
+
+## Run migrations and start the server
+
+```powershell
+python manage.py migrate
+python manage.py seed_rbac      # seeds 22 permissions, 3 roles, 7 menus
 python manage.py runserver 127.0.0.1:8000
 ```
 
@@ -46,44 +78,25 @@ Health check: `GET http://127.0.0.1:8000/api/health/`.
 
 ## First administrator
 
-The very first administrator is created through a one-time bootstrap endpoint
-protected by `ADMIN_SIGNUP_CODE`:
+The very first administrator is created through a one-time bootstrap endpoint protected by `ADMIN_SIGNUP_CODE`:
 
 ```bash
 POST /api/v1/auth/bootstrap/
 { "username": "...", "email": "...", "password": "...", "signup_code": "<ADMIN_SIGNUP_CODE>" }
 ```
 
-Once an administrator exists the endpoint returns `410 Gone`. The bootstrapped
-account is a **protected administrator**: it implicitly holds every registered
-permission, cannot be deactivated, and cannot have its roles or overrides
-changed.
-
-## Importing legacy users
-
-`backend/data/users.json` stores raw bcrypt hashes from the Node service. Django
-needs a `bcrypt$` prefix to verify them, so the import converts the hash in
-place:
-
-```bash
-python manage.py import_legacy_users            # dry run (default)
-python manage.py import_legacy_users --apply     # write
-```
+Once an administrator exists, the endpoint returns `410 Gone`. The bootstrapped account is a **protected administrator**: it implicitly holds every registered permission, cannot be deactivated, and cannot have its roles or overrides changed.
 
 ## Authentication model
 
-- Access token: short-lived JWT (default 8 min), returned in the response body
-  and held by the SPA in memory only.
-- Refresh token: long-lived JWT (default 7 days) in an HttpOnly, SameSite=Lax
-  cookie (`fd_refresh`) scoped to `/api/v1/auth/`. Rotation + blacklist enabled.
-- `POST /api/v1/auth/login/`, `POST /api/v1/auth/token/refresh/`, and
-  `POST /api/v1/auth/logout/` are CSRF-protected; the SPA fetches
-  `GET /api/v1/auth/csrf/` on startup and sends the `X-CSRFToken` header.
+- **Access token:** short-lived JWT (default 8 minutes), returned in the response body and held by the SPA in memory only.
+- **Refresh token:** long-lived JWT (default 7 days) in an HttpOnly, SameSite=Lax cookie (`fd_refresh`) scoped to `/api/v1/auth/`. Rotation and blacklist are enabled.
+- `POST /api/v1/auth/login/`, `POST /api/v1/auth/token/refresh/`, and `POST /api/v1/auth/logout/` are CSRF-protected. The SPA fetches `GET /api/v1/auth/csrf/` on startup and sends the `X-CSRFToken` header on non-GET requests.
 
-### Endpoints
+## API endpoints
 
 | Method | Path | Notes |
-| --- | --- | --- |
+|--------|------|-------|
 | GET | `/api/health/` | liveness + DB check |
 | GET | `/api/v1/auth/setup-status/` | whether an admin exists |
 | POST | `/api/v1/auth/bootstrap/` | one-time first admin |
@@ -92,6 +105,7 @@ python manage.py import_legacy_users --apply     # write
 | POST | `/api/v1/auth/logout/` | blacklists refresh, clears cookie |
 | GET | `/api/v1/auth/me/` | current user |
 | GET | `/api/v1/auth/me/access/` | effective permissions + menu tree |
+| GET | `/api/v1/auth/csrf/` | CSRF cookie |
 | GET | `/api/v1/navigation/menus/` | visible menu tree |
 | CRUD | `/api/v1/users/` | user administration + roles/overrides sub-routes |
 | CRUD | `/api/v1/roles/` | roles + `/:id/permissions/`, `/:id/menus/` |
@@ -100,7 +114,7 @@ python manage.py import_legacy_users --apply     # write
 | CRUD | `/api/v1/todos/` | scoped to-dos + `/assign/`, `/status/` |
 | GET | `/api/v1/audit-logs/` | cursor-paginated audit trail |
 | GET | `/api/v1/audit-logs/export/` | CSV export |
-| GET | `/api/v1/market/stock-daily/<symbol>/` | daily OHLCV (`market.read`) |
+| GET | `/api/v1/market/stock-daily/<symbol>/` | daily OHLCV |
 | GET | `/api/v1/market/sector-performance/` | sector performance |
 | GET | `/api/v1/market/movers/` | gainers / losers / most active |
 | GET | `/api/v1/market/stock-score/<symbol>/` | composite score |
@@ -109,47 +123,29 @@ Market responses set `X-Data-Source: live|mock`.
 
 ## RBAC
 
-Permissions are **code-registered** in `access_control/catalog.py`. A
-`Permission` row is only enforced when its code appears in that catalog — adding
-rows cannot create new capabilities. The single source of truth for
-authorization is `access_control/policy.py` (deny-overrides-grant, request
-scoped). `is_staff` / `is_superuser` only gate the Django admin, never
-application RBAC.
+Permissions are **code-registered** in `access_control/catalog.py`. A `Permission` row is only enforced when its code appears in that catalog — adding rows cannot create new capabilities. The single source of truth for authorization is `access_control/policy.py` (deny-overrides-grant, request-scoped). `is_staff` / `is_superuser` only gate the Django admin, never application RBAC.
 
 Seed roles: `administrator`, `auditor`, `standard_user`.
 
 ## To-dos
 
-Statuses: `open → in_progress → {blocked, completed, cancelled}`. Transitions
-outside the allowed graph are rejected. Users without `todos.manage` only see
-to-dos they own or are assigned.
+Statuses: `open → in_progress → {blocked, completed, cancelled}`. Transitions outside the allowed graph are rejected. Users without `todos.manage` only see to-dos they own or are assigned.
 
-## Market data / parity
+## Market data
 
-`market_data/mock_data.py` is a byte-for-byte port of the legacy
-`backend/utils/mockData.js` (same FNV-1a hash, mulberry32 PRNG, price walk).
-The one documented difference: the JS version labels dates with
-`Date.toISOString()` (UTC) while the Python port labels in local time; the
-numeric series is identical for a given seed. `market_data/scoring.py` mirrors
-`backend/utils/stockScoreCalculator.js` and is checked by a parity test that
-runs the original Node module.
-
-Set `USE_MOCK_DATA=true` (or leave `ALPHA_VANTAGE_API_KEY` empty) for
-deterministic sample data.
+`market_data/mock_data.py` provides deterministic mock data when `USE_MOCK_DATA=true` or `ALPHA_VANTAGE_API_KEY` is empty. Live data is fetched from Alpha Vantage and cached by Django.
 
 ## Tests
 
-```bash
+```powershell
 pytest -c pytest.ini tests
 ```
 
-The suite covers auth, RBAC/delegation, to-do scoping and transitions, audit
-writes, market endpoints, legacy-user import, and the Node score parity.
+The suite covers auth, RBAC/delegation, to-do scoping and transitions, audit writes, market endpoints, and legacy-user import.
 
 ## Security notes
 
-- Argon2 is the first password hasher; bcrypt is kept for imported hashes.
+- `Argon2` is the first password hasher; `bcrypt` is kept for imported hashes.
 - Login, bootstrap, and refresh endpoints are throttled.
-- Direct edits in MySQL Workbench bypass Django signals and therefore are not
-  audited — always perform privileged changes through the API or management
-  commands.
+- Direct edits in MySQL Workbench bypass Django signals and are not audited — always perform privileged changes through the API or management commands.
+- `DJANGO_SECRET_KEY` and `DB_PASSWORD` (MySQL) are required environment variables with no fallback.
