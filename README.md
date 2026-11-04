@@ -12,7 +12,7 @@ Repository: `https://github.com/HarshitSewlikar/Financial_Analysis`
 - **Stock score:** composite score from volatility, growth rate, and volume
 - **Authentication:** JWT access token held in memory, HttpOnly refresh token cookie, CSRF protection
 - **Role-based access control (RBAC):** code-registered permissions, roles, per-user overrides, dynamic navigation menus
-- **User management:** create users, assign roles, manage permission and menu overrides
+- **User management:** create users, assign roles, and manage permission overrides
 - **To-dos:** scoped task management with enforced status transitions
 - **Market data:** Alpha Vantage integration with deterministic offline mock data and API response caching
 - **Audit logging:** cursor-paginated audit trail with CSV export
@@ -27,7 +27,7 @@ Repository: `https://github.com/HarshitSewlikar/Financial_Analysis`
 - Django REST Framework SimpleJWT 5.5.1
 - django-cors-headers, django-filter
 - argon2-cffi, bcrypt (password hashing)
-- MySQL 8 (default) or Microsoft SQL Server (via `config/settings_sqlserver.py`, `mssql-django`, `pyodbc`, Windows Integrated Authentication)
+- Microsoft SQL Server (default, via `config/settings_sqlserver.py`, `mssql-django`, `pyodbc`, Windows Integrated Authentication). MySQL settings remain in `config/settings.py` as a legacy reference.
 - python-dotenv for environment configuration
 
 **Frontend**
@@ -39,8 +39,6 @@ Repository: `https://github.com/HarshitSewlikar/Financial_Analysis`
 - React Router 7.1.1
 - Recharts 2.15.3
 - Axios 1.9.0
-- React Select 5.10.1
-- React Hook Form, Zod
 - Vitest 5.0.4
 
 ## Project Structure
@@ -59,8 +57,8 @@ Financial_Analysis/
 │   ├── config/                     # settings, urls, health
 │   ├── tests/                      # pytest suite
 │   ├── tests_sqlserver/            # SQL Server settings tests
-│   ├── requirements.txt            # MySQL backend dependencies
-│   ├── requirements-sqlserver.txt  # SQL Server backend dependencies
+│   ├── requirements.txt            # legacy MySQL dependencies
+│   ├── requirements-sqlserver.txt  # default SQL Server dependencies
 │   ├── manage.py
 │   └── README.md
 ├── financial-dashboard-frontend/   # React (Vite) frontend
@@ -96,7 +94,7 @@ All commands below are Windows PowerShell.
 
 - Python 3.11+
 - Node.js 18+ and npm
-- MySQL 8 (for the default backend) **or** SQL Server with the Microsoft ODBC Driver 18 (for `settings_sqlserver.py`)
+- SQL Server with the Microsoft ODBC Driver 18 (default). MySQL 8 is only needed for the legacy reference settings.
 
 ### 1. Clone the repository
 
@@ -114,17 +112,23 @@ cd backend-django
 python -m venv .venv
 .venv/Scripts/Activate.ps1
 
-# Install Python dependencies (MySQL backend)
-pip install -r requirements.txt
+# Install Python dependencies (SQL Server backend)
+pip install -r requirements-sqlserver.txt
 
 # Copy the environment template and fill in real values
 cp .env.example .env
-# Edit .env: set DJANGO_SECRET_KEY, DB_PASSWORD, ADMIN_SIGNUP_CODE, and other values
+# Edit .env: set DJANGO_SECRET_KEY and ADMIN_SIGNUP_CODE
 ```
+
+`manage.py`, WSGI, and ASGI load `config.settings_sqlserver` unless `DJANGO_SETTINGS_MODULE` is set. SQL Server uses Windows Integrated Authentication, so `DB_PASSWORD` is not required for the default startup.
 
 ### 3. Configure the database
 
-**MySQL (default backend):**
+**Microsoft SQL Server (default):**
+
+Install the ODBC Driver 18 for SQL Server. The default settings module connects with `Trusted_Connection=yes`.
+
+**MySQL (legacy reference only):**
 
 Create the database and a least-privilege user:
 
@@ -137,18 +141,12 @@ GRANT ALL PRIVILEGES ON test_financial_dashboard.* TO 'finapp'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-Set `DB_PASSWORD` in `backend-django/.env` to match the MySQL user password.
-
-**Microsoft SQL Server (alternative backend):**
-
-Use `config/settings_sqlserver.py` with Windows Integrated Authentication:
+Set `DB_PASSWORD` in `backend-django/.env` only when starting with the legacy module:
 
 ```powershell
-$env:DJANGO_SETTINGS_MODULE = "config.settings_sqlserver"
-pip install -r requirements-sqlserver.txt
+$env:DJANGO_SETTINGS_MODULE = "config.settings"
+pip install -r requirements.txt
 ```
-
-No `DB_PASSWORD` is required for SQL Server (`Trusted_Connection=yes`).
 
 ### 4. Run Django migrations and start the server
 
@@ -175,20 +173,13 @@ Open `http://localhost:5173`. With no administrator yet, the app shows a one-tim
 
 ## Database Support
 
-### MySQL (default)
+### Microsoft SQL Server (default)
 
-`config/settings.py` configures the MySQL backend. `DB_PASSWORD` must be supplied through the environment (via `.env`) — there is no insecure hardcoded fallback. If `DB_PASSWORD` is missing, Django raises a `RuntimeError` at startup.
+`manage.py` loads `config.settings_sqlserver`. That module uses the `mssql` backend and Windows Integrated Authentication (`Trusted_Connection=yes`). Install dependencies with `requirements-sqlserver.txt`.
 
-### Microsoft SQL Server
+### MySQL (legacy reference)
 
-`config/settings_sqlserver.py` overrides the database configuration to use the `mssql` backend with Windows Integrated Authentication (`Trusted_Connection=yes`). It uses `mssql-django`, `pyodbc`, and the Microsoft ODBC Driver 18 for SQL Server. Install dependencies with `requirements-sqlserver.txt`.
-
-Select the SQL Server settings module:
-
-```powershell
-$env:DJANGO_SETTINGS_MODULE = "config.settings_sqlserver"
-python manage.py migrate
-```
+`config/settings.py` still configures MySQL. It is not used unless `DJANGO_SETTINGS_MODULE` is set to `config.settings`. That path requires `DB_PASSWORD` and `requirements.txt`.
 
 ## Environment Configuration
 
@@ -218,10 +209,10 @@ Base path: `/api/v1/`
 |------|-----------|
 | Health | `GET /api/health/` |
 | Auth | `POST /api/v1/auth/bootstrap/`, `POST /api/v1/auth/login/`, `POST /api/v1/auth/token/refresh/`, `POST /api/v1/auth/logout/`, `GET /api/v1/auth/me/`, `GET /api/v1/auth/me/access/`, `GET /api/v1/auth/csrf/`, `GET /api/v1/auth/setup-status/` |
-| Users | CRUD on `/api/v1/users/` plus role, permission, and menu overrides |
+| Users | CRUD on `/api/v1/users/` plus roles and permission overrides |
 | Roles | CRUD on `/api/v1/roles/` plus permissions and menus |
 | Permissions | CRUD on `/api/v1/permissions/` |
-| Menus | CRUD on `/api/v1/menus/`; `GET /api/v1/navigation/menus/` |
+| Menus | `GET /api/v1/menus/` |
 | To-dos | CRUD on `/api/v1/todos/` plus `/assign/` and `/status/` |
 | Audit | `GET /api/v1/audit-logs/`, `GET /api/v1/audit-logs/export/` |
 | Market | `GET /api/v1/market/stock-daily/<symbol>/`, `GET /api/v1/market/sector-performance/`, `GET /api/v1/market/movers/`, `GET /api/v1/market/stock-score/<symbol>/` |

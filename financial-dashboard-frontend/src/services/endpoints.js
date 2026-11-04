@@ -25,8 +25,6 @@ export const getUserOverrides = (id) =>
   http.get(`/users/${id}/permission-overrides/`).then((r) => r.data)
 export const setUserOverrides = (id, overrides) =>
   http.put(`/users/${id}/permission-overrides/`, { overrides }).then((r) => r.data)
-export const setUserMenuOverrides = (id, overrides) =>
-  http.put(`/users/${id}/menu-overrides/`, { overrides }).then((r) => r.data)
 
 // --- Roles ---
 export const listRoles = (params = {}) =>
@@ -56,12 +54,6 @@ export const deactivatePermission = (id) => http.delete(`/permissions/${id}/`)
 // --- Menus ---
 export const listMenus = (params = {}) =>
   http.get('/menus/', { params }).then((r) => r.data)
-export const createMenu = (payload) => http.post('/menus/', payload).then((r) => r.data)
-export const updateMenu = (id, payload) =>
-  http.patch(`/menus/${id}/`, payload).then((r) => r.data)
-export const deactivateMenu = (id) => http.delete(`/menus/${id}/`)
-export const getNavigationMenus = () =>
-  http.get('/navigation/menus/').then((r) => r.data)
 
 // --- Todos ---
 export const listTodos = (params = {}) =>

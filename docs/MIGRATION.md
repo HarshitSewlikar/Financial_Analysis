@@ -17,8 +17,8 @@ backend, how to run both during the transition, and how to roll back.
 | Data fetching | `useFetchData` hook | TanStack Query v5 |
 | Routing | static routes | routes derived from server-provided menu tree |
 
-The legacy `backend/` service and `backend/data/users.json` are **preserved
-unchanged** for rollback. Nothing deletes them.
+The legacy Express service and `localStorage` client are not in this tree.
+Rollback to that stack is no longer possible from the current files.
 
 ## Frontend integration
 

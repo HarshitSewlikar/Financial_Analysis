@@ -158,22 +158,6 @@ class UserPermissionOverrideAssignSerializer(serializers.Serializer):
     overrides = OverrideItemSerializer(many=True)
 
 
-class MenuOverrideItemSerializer(serializers.Serializer):
-    menu_code = serializers.CharField(max_length=100)
-    effect = serializers.ChoiceField(choices=(("SHOW", "Show"), ("HIDE", "Hide")))
-
-    def validate_menu_code(self, value):
-        from navigation.models import Menu
-
-        if not Menu.objects.filter(code=value, is_active=True).exists():
-            raise serializers.ValidationError(f"Menu not found: {value}")
-        return value
-
-
-class UserMenuOverrideAssignSerializer(serializers.Serializer):
-    overrides = MenuOverrideItemSerializer(many=True)
-
-
 class UserRoleSerializer(serializers.ModelSerializer):
     role_code = serializers.CharField(source="role.code", read_only=True)
     role_name = serializers.CharField(source="role.name", read_only=True)

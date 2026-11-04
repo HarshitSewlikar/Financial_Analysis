@@ -399,7 +399,7 @@ def _access_menus(api):
 
 
 @pytest.mark.django_db
-def test_role_and_user_menu_overrides_change_visibility(api, seeded, admin_user, make_user):
+def test_role_assignment_controls_page_visibility(api, seeded, admin_user, make_user):
     from navigation.models import Menu, UserMenuOverride
 
     role = make_role("deskrole", ["market.read", "todos.read"])
@@ -428,82 +428,54 @@ def test_role_and_user_menu_overrides_change_visibility(api, seeded, admin_user,
     api.force_authenticate(user=User.objects.get(pk=target.pk))
     assert set(_access_menus(api)) == {"dashboard", "todos"}
 
-    stranger = make_user("nomenus", roles=())
-    api.force_authenticate(user=stranger)
-    menu_path = f"/api/v1/users/{target.pk}/menu-overrides/"
+    api.force_authenticate(user=admin_user)
+    audit_role = make_role("auditonly", ["audit.read"])
     assert api.put(
-        menu_path,
-        {"overrides": [{"menu_code": "audit", "effect": "SHOW"}]},
+        f"/api/v1/roles/{audit_role.pk}/menus/",
+        {"menu_ids": [audit.id]},
         format="json",
-    ).status_code == 403
-
-    clerk = make_user("menuclerk", roles=())
-    assign(clerk, make_role("menuclerk", ["menus.assign", "market.read", "todos.read"]))
-    api.force_authenticate(user=clerk)
-    blocked = api.put(
-        menu_path,
-        {"overrides": [{"menu_code": "audit", "effect": "SHOW"}]},
+    ).status_code == 200
+    assert api.put(
+        f"/api/v1/users/{target.pk}/roles/",
+        {"role_ids": [audit_role.pk]},
         format="json",
-    )
-    assert blocked.status_code == 403
-    assert UserMenuOverride.objects.filter(user=target).count() == 0
-
-    api.force_authenticate(user=admin_user)
-    shown = api.put(
-        menu_path,
-        {"overrides": [{"menu_code": "audit", "effect": "SHOW"}]},
-        format="json",
-    )
-    assert shown.status_code == 200
-    assert UserMenuOverride.objects.get(user=target, menu=audit).effect == "SHOW"
-    audit_row = next(row for row in shown.json()["access"]["menus"] if row["code"] == "audit")
-    assert audit_row["from_role"] is False
-    assert audit_row["override"] == "SHOW"
-    assert audit_row["effective"] is True
-
-    hidden = api.put(
-        menu_path,
-        {
-            "overrides": [
-                {"menu_code": "audit", "effect": "SHOW"},
-                {"menu_code": "todos", "effect": "HIDE"},
-            ]
-        },
-        format="json",
-    )
-    assert hidden.status_code == 200
+    ).status_code == 200
     api.force_authenticate(user=User.objects.get(pk=target.pk))
-    visible = set(_access_menus(api))
-    assert "audit" in visible
-    assert "todos" not in visible
-    assert "dashboard" in visible
-    assert api.get("/api/v1/audit-logs/").status_code == 403
-    assert api.get("/api/v1/todos/").status_code == 200
+    assert _access_menus(api) == ["audit"]
+    assert api.get("/api/v1/audit-logs/").status_code == 200
+    assert api.get("/api/v1/todos/").status_code == 403
 
-    api.force_authenticate(user=admin_user)
-    reset = api.put(menu_path, {"overrides": []}, format="json")
-    assert reset.status_code == 200
-    assert UserMenuOverride.objects.filter(user=target).count() == 0
-    api.force_authenticate(user=User.objects.get(pk=target.pk))
-    assert set(_access_menus(api)) == {"dashboard", "todos"}
+    UserMenuOverride.objects.create(
+        user=target, menu=todos, effect=UserMenuOverride.Effect.SHOW
+    )
+    UserMenuOverride.objects.create(
+        user=target, menu=audit, effect=UserMenuOverride.Effect.HIDE
+    )
+    assert _access_menus(api) == ["audit"]
+    assert api.get("/api/v1/audit-logs/").status_code == 200
+    assert api.get("/api/v1/todos/").status_code == 403
+    assert api.put(
+        f"/api/v1/users/{target.pk}/menu-overrides/",
+        {"overrides": [{"menu_code": "todos", "effect": "SHOW"}]},
+        format="json",
+    ).status_code == 404
 
 
 @pytest.mark.django_db
-def test_role_change_keeps_individual_overrides(api, seeded, admin_user, make_user):
-    from navigation.models import UserMenuOverride
+def test_role_change_keeps_permission_overrides(api, seeded, admin_user, make_user):
+    from navigation.models import Menu, UserMenuOverride
 
     target = make_user("mover", roles=("standard_user",))
+    audit = Menu.objects.get(code="audit")
     api.force_authenticate(user=admin_user)
     assert api.put(
         f"/api/v1/users/{target.pk}/permission-overrides/",
         {"overrides": [{"permission_code": "users.read", "effect": "ALLOW"}]},
         format="json",
     ).status_code == 200
-    assert api.put(
-        f"/api/v1/users/{target.pk}/menu-overrides/",
-        {"overrides": [{"menu_code": "audit", "effect": "SHOW"}]},
-        format="json",
-    ).status_code == 200
+    UserMenuOverride.objects.create(
+        user=target, menu=audit, effect=UserMenuOverride.Effect.SHOW
+    )
 
     replacement = make_role("marketonly", ["market.read"])
     assert api.put(
@@ -519,7 +491,36 @@ def test_role_change_keeps_individual_overrides(api, seeded, admin_user, make_us
     assert _perm(loaded.json(), "users.read")["effective"] is True
     assert _perm(loaded.json(), "todos.read")["effective"] is False
     audit_row = next(row for row in loaded.json()["access"]["menus"] if row["code"] == "audit")
-    assert audit_row["override"] == "SHOW"
-    assert audit_row["effective"] is True
+    assert "override" not in audit_row
+    assert audit_row["from_role"] is False
+    assert audit_row["effective"] is False
+    api.force_authenticate(user=User.objects.get(pk=target.pk))
+    assert api.get("/api/v1/users/").status_code == 200
+    assert api.get("/api/v1/audit-logs/").status_code == 403
+    assert "audit" not in _access_menus(api)
     assert UserPermissionOverride.objects.filter(user=target, effect="ALLOW").count() == 1
     assert UserMenuOverride.objects.filter(user=target, effect="SHOW").count() == 1
+
+
+@pytest.mark.django_db
+def test_menu_catalog_is_read_only(api, seeded, admin_user):
+    api.force_authenticate(user=admin_user)
+    listed = api.get("/api/v1/menus/")
+    assert listed.status_code == 200
+    menu_id = listed.json()["results"][0]["id"]
+    assert api.post(
+        "/api/v1/menus/",
+        {"code": "extra", "label": "Extra", "path": "/extra", "component_key": "TodosPage"},
+        format="json",
+    ).status_code == 405
+    assert api.patch(
+        f"/api/v1/menus/{menu_id}/", {"label": "Renamed"}, format="json"
+    ).status_code == 405
+    assert api.delete(f"/api/v1/menus/{menu_id}/").status_code == 405
+    assert api.get("/api/v1/navigation/menus/").status_code == 404
+    role = Role.objects.get(code="standard_user")
+    assert api.put(
+        f"/api/v1/roles/{role.pk}/menus/",
+        {"menu_ids": [menu_id]},
+        format="json",
+    ).status_code == 200

@@ -69,7 +69,10 @@ class StockScoreView(APIView):
             )
 
         def compute():
-            daily = alpha_vantage.fetch_daily_stock_data(symbol)
+            daily = cache.get_or_fetch(
+                f"daily_stock_{symbol}",
+                lambda: alpha_vantage.fetch_daily_stock_data(symbol),
+            )
             score = calculate_stock_score(daily["data"])
             if score is None:
                 raise alpha_vantage.AlphaVantageError(

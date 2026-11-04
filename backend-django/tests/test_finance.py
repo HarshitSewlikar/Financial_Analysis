@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-import json
-import shutil
-import subprocess
-import tempfile
-from pathlib import Path
-
 import pytest
-from django.conf import settings
 
 from market_data import alpha_vantage
 from market_data.mock_data import get_mock_daily_stock_data
@@ -31,38 +24,81 @@ def _deterministic_daily(n=40):
     return rows
 
 
-def _node_score(daily):
-    if shutil.which("node") is None:
-        pytest.skip("node is not available for parity testing")
-    script = Path(settings.BASE_DIR) / "tests" / "parity" / "score_parity.js"
-    with tempfile.NamedTemporaryFile(
-        "w", suffix=".json", delete=False, encoding="utf-8"
-    ) as handle:
-        json.dump(daily, handle)
-        tmp_path = handle.name
-    try:
-        completed = subprocess.run(
-            ["node", str(script), tmp_path],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    finally:
-        Path(tmp_path).unlink(missing_ok=True)
-    return json.loads(completed.stdout)
+def test_documented_fixture_score():
+    """Legacy stockScoreCalculator.js is not in this tree.
+
+    The numbers are the documented thresholds for the 40-row fixture:
+    volatility 0.4154 (1), growth 0.0202 (5), average volume 2125000 (3).
+    """
+    assert calculate_stock_score(_deterministic_daily()) == {
+        "score": 9,
+        "metrics": {
+            "volatility": "0.4154",
+            "growthRate": "0.0202",
+            "averageVolume": "2125000",
+        },
+        "factors": {
+            "volatility": {"value": "0.4154", "points": 1},
+            "growthRate": {"value": "0.0202", "points": 5},
+            "averageVolume": {"value": "2125000", "points": 3},
+        },
+    }
 
 
-@pytest.mark.django_db
-def test_score_parity_with_legacy_javascript():
-    daily = _deterministic_daily()
-    python_result = calculate_stock_score(daily)
-    node_result = _node_score(daily)
-    assert python_result == node_result
+def _flat(n, close, volume):
+    return [
+        {
+            "date": f"2025-01-{i + 1:02d}",
+            "open": close,
+            "high": close,
+            "low": close,
+            "close": close,
+            "volume": volume,
+        }
+        for i in range(n)
+    ]
 
 
 def test_score_insufficient_data_returns_none():
     assert calculate_stock_score([]) is None
     assert calculate_stock_score(_deterministic_daily(10)) is None
+    assert calculate_stock_score(_flat(19, 100, 100)) is None
+
+
+def test_flat_minimum_window_score():
+    """Twenty unchanged closes: volatility 0 (5), growth 0 (1), volume 100 (1)."""
+    assert calculate_stock_score(_flat(20, 100, 100)) == {
+        "score": 7,
+        "metrics": {
+            "volatility": "0.0000",
+            "growthRate": "0.0000",
+            "averageVolume": "100",
+        },
+        "factors": {
+            "volatility": {"value": "0.0000", "points": 5},
+            "growthRate": {"value": "0.0000", "points": 1},
+            "averageVolume": {"value": "100", "points": 1},
+        },
+    }
+
+
+def test_volume_threshold_is_exclusive():
+    at_boundary = calculate_stock_score(_flat(20, 50, 1_000_000))
+    above = calculate_stock_score(_flat(20, 50, 1_000_001))
+    assert at_boundary["factors"]["averageVolume"] == {"value": "1000000", "points": 1}
+    assert above["factors"]["averageVolume"] == {"value": "1000001", "points": 3}
+
+
+def test_exact_two_percent_growth_scores_three_points():
+    rows = _flat(20, 100, 100)
+    rows[-1]["close"] = 102
+    result = calculate_stock_score(rows)
+    assert result["metrics"]["growthRate"] == "0.0200"
+    assert result["factors"]["growthRate"]["points"] == 3
+
+
+def test_all_zero_closes_have_no_returns():
+    assert calculate_stock_score(_flat(20, 0, 1)) is None
 
 
 def test_normalize_daily_time_series_sorts_and_parses():
@@ -127,3 +163,24 @@ def test_finance_endpoints_work_with_permission(api, seeded, make_user, settings
     daily = api.get("/api/v1/market/stock-daily/IBM/")
     assert daily.status_code == 200
     assert isinstance(daily.json(), list)
+
+
+@pytest.mark.django_db
+def test_score_reuses_cached_daily_series(api, seeded, make_user, monkeypatch):
+    calls = {"n": 0}
+
+    def fake_daily(symbol):
+        calls["n"] += 1
+        return {"data": _flat(20, 100, 2_000_000), "source": "mock"}
+
+    monkeypatch.setattr(
+        "market_data.views.alpha_vantage.fetch_daily_stock_data", fake_daily
+    )
+    user = make_user("scorer", roles=("standard_user",))
+    api.force_authenticate(user=user)
+    assert api.get("/api/v1/market/stock-daily/IBM/").status_code == 200
+    assert calls["n"] == 1
+    scored = api.get("/api/v1/market/stock-score/IBM/")
+    assert scored.status_code == 200
+    assert scored.json()["score"] == 9
+    assert calls["n"] == 1

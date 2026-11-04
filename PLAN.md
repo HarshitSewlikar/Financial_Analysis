@@ -1,6 +1,6 @@
 # PLAN: Migration to RBAC-Enabled Dashboard with Django + DRF + MySQL, React + Tailwind + TanStack Query
 
-**Status:** PLANNING ONLY - No code changes to be made. This document is for review and approval.
+**Status:** Historical planning notes from the old Express and JSON-file tree. The running application is Django, SQL Server, and the React app under `financial-dashboard-frontend/`. Do not treat the inventory below as the current source tree.
 
 ---
 

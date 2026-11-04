@@ -78,7 +78,8 @@ def login():
 
 
 @pytest.fixture
-def bootstrap_ready(db, seeded):
+def bootstrap_ready(db, seeded, settings):
+    settings.ADMIN_SIGNUP_CODE = "setup-code-local-dev"
     state = SetupState.objects.get(pk=1)
     state.is_bootstrapped = False
     state.save(update_fields=["is_bootstrapped"])

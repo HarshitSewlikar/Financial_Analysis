@@ -17,7 +17,6 @@ export const queryClient = new QueryClient({
 export const queryKeys = {
   authMe: ['auth', 'me'],
   authAccess: ['auth', 'access'],
-  navigationMenus: ['navigation', 'menus'],
   users: (filters) => ['users', filters],
   roles: (filters) => ['roles', filters],
   permissions: (filters) => ['permissions', filters],
