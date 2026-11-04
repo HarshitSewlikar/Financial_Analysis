@@ -124,7 +124,7 @@ const UsersAdminPage = () => {
       render: (row) => (
         <button
           type="button"
-          className="font-medium text-slate-900 underline-offset-2 hover:underline"
+          className="font-semibold text-ink underline-offset-2 hover:text-accent hover:underline"
           onClick={() => setModal({ accessFor: row })}
         >
           {row.username}
@@ -154,11 +154,11 @@ const UsersAdminPage = () => {
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           {can('users.update') && (
-            <Button variant="secondary" onClick={() => openEdit(row)}>
+            <Button variant="outline" onClick={() => openEdit(row)}>
               Edit
             </Button>
           )}
-          <Button variant="secondary" onClick={() => setModal({ accessFor: row })}>
+          <Button variant="ghost" onClick={() => setModal({ accessFor: row })}>
             Access
           </Button>
           {can('users.deactivate') && row.is_active && (
@@ -182,7 +182,7 @@ const UsersAdminPage = () => {
       actions={can('users.create') && <Button onClick={openCreate}>New user</Button>}
     >
       <Card>
-        <div className="mb-3 max-w-md">
+        <div className="mb-4 max-w-md rounded-2xl border border-line bg-indigo-soft p-4">
           <Input
             label="Search users"
             placeholder="Username, name, or email"
@@ -243,7 +243,7 @@ const UsersAdminPage = () => {
               minLength={modal.id ? undefined : 8}
             />
             {modal.id && (
-              <p className="text-xs text-slate-500">Leave the password blank to keep the current one.</p>
+              <p className="text-xs text-ink-muted">Leave the password blank to keep the current one.</p>
             )}
             {modal.id && (
               <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -383,20 +383,20 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
         <div className="space-y-5">
           {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
           {notice && <p className="text-sm text-emerald-800" role="status">{notice}</p>}
-          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
-            <span className="font-medium text-slate-900">{server.username}</span>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-secondary">
+            <span className="font-medium text-ink">{server.username}</span>
             <ActiveBadge active={server.is_active} />
             {locked && <Badge tone="warning">Protected administrator</Badge>}
           </div>
           {locked && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-ink-secondary">
               This account keeps every registered permission. Individual changes are not stored for it.
             </p>
           )}
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">Assigned roles</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-sm font-semibold text-ink">Assigned roles</h2>
+            <p className="text-sm text-ink-secondary">
               Current roles: {(server.roles || []).map((role) => role.name).join(', ') || 'None'}.
             </p>
             {canAssignRoles && (
@@ -405,7 +405,7 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {(roles.data?.results || []).filter((role) => role.is_active).map((role) => (
-                    <label key={role.id} className="flex cursor-pointer items-start gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                    <label key={role.id} className="flex cursor-pointer items-start gap-2 rounded-md border border-line px-3 py-2 text-sm">
                       <input
                         type="checkbox"
                         className="mt-0.5"
@@ -419,8 +419,8 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
                         }}
                       />
                       <span>
-                        <span className="font-medium text-slate-800">{role.name}</span>
-                        <span className="mt-0.5 block text-xs text-slate-500">{role.code}</span>
+                        <span className="font-medium text-ink">{role.name}</span>
+                        <span className="mt-0.5 block text-xs text-ink-muted">{role.code}</span>
                       </span>
                     </label>
                   ))}
@@ -438,10 +438,10 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
 
           <section className="space-y-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-900">Permissions</h2>
+              <h2 className="text-sm font-semibold text-ink">Permissions</h2>
               {permissionStatus && (
                 <p
-                  className={`text-xs ${permissionStatus.tone === 'error' ? 'text-red-700' : 'text-slate-500'}`}
+                  className={`text-xs ${permissionStatus.tone === 'error' ? 'text-red-700' : 'text-ink-muted'}`}
                   role={permissionStatus.tone === 'error' ? 'alert' : 'status'}
                 >
                   {permissionStatus.text}
@@ -457,10 +457,10 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
             <div className="space-y-4">
               {groupByResource(visible).map(([resource, group]) => (
                 <div key={resource}>
-                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
                     {resource}
                   </h3>
-                  <div className="divide-y divide-slate-100 rounded-md border border-slate-200">
+                  <div className="divide-y divide-line rounded-md border border-line">
                     {group.map((perm) => (
                       <div key={perm.code} className="flex items-center gap-3 px-3 py-1.5">
                         <label className="flex min-w-0 flex-1 items-center gap-3">
@@ -472,13 +472,13 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
                             onChange={(event) => togglePermission(perm, event.target.checked)}
                           />
                           <span className="min-w-0">
-                            <span className="text-sm text-slate-900">{perm.description || perm.code}</span>
+                            <span className="text-sm text-ink">{perm.description || perm.code}</span>
                             {perm.description && (
-                              <span className="ml-2 text-xs text-slate-400">{perm.code}</span>
+                              <span className="ml-2 text-xs text-ink-muted">{perm.code}</span>
                             )}
                           </span>
                         </label>
-                        <span className="shrink-0 text-xs text-slate-500">
+                        <span className="shrink-0 text-xs text-ink-muted">
                           {perm.from_role ? 'In role' : 'Not in role'}
                           {perm.override === 'ALLOW' ? ' · allowed for this user' : ''}
                           {perm.override === 'DENY' ? ' · denied for this user' : ''}
@@ -486,7 +486,7 @@ const UserAccessPanel = ({ user, canAssignRoles, canAssignPermissions, onClose, 
                         {perm.override && canAssignPermissions && !locked && (
                           <button
                             type="button"
-                            className="shrink-0 text-xs text-slate-700 underline"
+                            className="shrink-0 text-xs text-ink-secondary underline"
                             disabled={savingAccess}
                             onClick={() => resetPermission(perm)}
                           >

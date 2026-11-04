@@ -73,6 +73,12 @@ export const listAudit = (params = {}) =>
 export const auditExportUrl = `${http.defaults.baseURL}/audit-logs/export/`
 
 // --- Market ---
+export const classifySectorSource = (header) => {
+  const value = String(header ?? '').trim().toLowerCase()
+  if (value === 'live' || value === 'mock') return value
+  return 'unknown'
+}
+
 export const getDailyStock = (symbol) =>
   http.get(`/market/stock-daily/${symbol}/`).then((r) => ({
     data: r.data,
@@ -81,7 +87,7 @@ export const getDailyStock = (symbol) =>
 export const getSectors = () =>
   http.get('/market/sector-performance/').then((r) => ({
     data: r.data,
-    source: r.headers['x-data-source'] || 'live',
+    source: classifySectorSource(r.headers['x-data-source']),
   }))
 export const getMovers = () =>
   http.get('/market/movers/').then((r) => ({

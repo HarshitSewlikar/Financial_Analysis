@@ -4,10 +4,10 @@ import { Button, Input, Modal } from '../common/Ui'
 
 export const AdminPage = ({ title, description, actions, children }) => (
   <div className="admin-page space-y-5">
-    <header className="flex flex-wrap items-start justify-between gap-3">
+    <header className="page-band flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-line px-5 py-5 shadow-[0_12px_32px_-24px_rgba(79,70,229,0.65)]">
       <div className="max-w-2xl">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">{title}</h1>
-        {description && <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>}
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+        {description && <p className="mt-1 text-sm leading-6 text-ink-secondary">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
     </header>
@@ -16,10 +16,11 @@ export const AdminPage = ({ title, description, actions, children }) => (
 )
 
 const BADGE_TONES = {
-  neutral: 'bg-slate-100 text-slate-700',
-  success: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
-  danger: 'bg-red-50 text-red-800 ring-1 ring-red-200',
-  warning: 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
+  neutral: 'bg-surface-muted text-ink-secondary ring-1 ring-line',
+  success: 'bg-positive-soft text-positive ring-1 ring-emerald-200',
+  danger: 'bg-negative-soft text-negative ring-1 ring-red-200',
+  warning: 'bg-warning-soft text-warning ring-1 ring-amber-200',
+  info: 'bg-info-soft text-info ring-1 ring-indigo-200',
 }
 
 export const Badge = ({ tone = 'neutral', children }) => (
@@ -36,7 +37,7 @@ export const ActiveBadge = ({ active }) => (
 
 export const FormActions = ({ onCancel, pending, submitLabel = 'Save' }) => (
   <div className="flex justify-end gap-2 pt-1">
-    <Button variant="secondary" type="button" onClick={onCancel}>
+    <Button variant="outline" type="button" onClick={onCancel}>
       Cancel
     </Button>
     <Button type="submit" disabled={pending} aria-busy={pending}>
@@ -52,19 +53,30 @@ export const ConfirmDialog = ({
   pending = false,
   onConfirm,
   onClose,
-}) => (
-  <Modal title={title} onClose={onClose}>
-    <p className="text-sm leading-6 text-slate-600">{message}</p>
-    <div className="mt-4 flex justify-end gap-2">
-      <Button variant="secondary" type="button" onClick={onClose}>
-        Cancel
-      </Button>
-      <Button variant="danger" type="button" onClick={onConfirm} disabled={pending} aria-busy={pending}>
-        {pending ? 'Working…' : confirmLabel}
-      </Button>
-    </div>
-  </Modal>
-)
+}) => {
+  const descriptionId = React.useId()
+  return (
+    <Modal title={title} onClose={onClose} describedBy={descriptionId}>
+      <p id={descriptionId} className="text-sm leading-6 text-ink-secondary">
+        {message}
+      </p>
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="outline" type="button" data-dialog-initial onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          variant="danger"
+          type="button"
+          onClick={onConfirm}
+          disabled={pending}
+          aria-busy={pending}
+        >
+          {pending ? 'Working…' : confirmLabel}
+        </Button>
+      </div>
+    </Modal>
+  )
+}
 
 export const groupByResource = (items) => {
   const groups = new Map()

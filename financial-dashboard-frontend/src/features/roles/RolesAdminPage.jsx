@@ -74,14 +74,14 @@ const RolesAdminPage = () => {
       key: 'name',
       render: (row) => (
         <button type="button" className="text-left" onClick={() => setModal(row)}>
-          <span className="font-medium text-slate-900">{row.name}</span>
+          <span className="font-semibold text-ink">{row.name}</span>
           {row.is_system && <Badge tone="warning">Built-in</Badge>}
-          <span className="mt-0.5 block text-xs text-slate-500">{row.code}</span>
+          <span className="mt-0.5 block text-xs text-ink-muted">{row.code}</span>
         </button>
       ),
     },
     { header: 'Description', key: 'description', render: (row) => row.description || '—' },
-    { header: 'Users', key: 'user_count' },
+    { header: 'Users', key: 'user_count', className: 'text-right tabular-nums' },
     { header: 'Status', key: 'status', render: (row) => <ActiveBadge active={row.is_active} /> },
     {
       header: 'Actions',
@@ -89,7 +89,7 @@ const RolesAdminPage = () => {
         <div className="flex flex-wrap gap-2">
           {can('roles.manage') && (
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 setModal(row)
               }}
@@ -124,7 +124,7 @@ const RolesAdminPage = () => {
       }
     >
       <Card>
-        <div className="mb-3 max-w-md">
+        <div className="mb-4 max-w-md rounded-2xl border border-line bg-indigo-soft p-4">
           <Input
             label="Search roles"
             placeholder="Name, code, or description"
@@ -274,7 +274,7 @@ const RoleEditor = ({ role, canAssign, canMenus, onClose, onSaved }) => {
           onChange={(event) => setForm((currentForm) => ({ ...currentForm, description: event.target.value }))}
         />
         {role?.assigned_usernames?.length > 0 && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-secondary">
             Assigned users: {role.assigned_usernames.join(', ')}
           </p>
         )}
@@ -293,7 +293,7 @@ const RoleEditor = ({ role, canAssign, canMenus, onClose, onSaved }) => {
             <Spinner label="Loading permissions…" />
           ) : (
             <>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-ink-secondary">
                 Checked permissions are the default for everyone assigned this role. They are saved as separate rows, not copied into the page.
               </p>
               <FilterableChecklist
@@ -310,8 +310,8 @@ const RoleEditor = ({ role, canAssign, canMenus, onClose, onSaved }) => {
         )}
         {canMenus && !loading && (
           <>
-            <h2 className="pt-2 text-sm font-semibold text-slate-900">Menu visibility</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="pt-2 text-sm font-semibold text-ink">Menu visibility</h2>
+            <p className="text-sm text-ink-secondary">
               Checked menus appear in the sidebar for people with this role. A menu can still stay hidden when the person lacks its required permission.
             </p>
             <FilterableChecklist

@@ -65,10 +65,7 @@ financial-dashboard-frontend/
 │   │   ├── common/Ui.jsx
 │   │   ├── layout/AppLayout.jsx
 │   │   ├── BarChartCard.jsx
-│   │   ├── HeatmapCard.jsx
-│   │   ├── LineChartCard.jsx
-│   │   ├── PieChartCard.jsx
-│   │   └── TableComponent.jsx
+│   │   └── LineChartCard.jsx
 │   ├── features/
 │   │   ├── audit/AuditPage.jsx
 │   │   ├── auth/AuthProvider.jsx, BootstrapPage.jsx, LoginPage.jsx, useAccess.js

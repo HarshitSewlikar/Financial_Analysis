@@ -91,7 +91,7 @@ const PermissionsAdminPage = () => {
         <div className="flex flex-wrap gap-2">
           {can('permissions.manage') && (
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 setForm({
                   code: row.code,
