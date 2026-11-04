@@ -67,8 +67,6 @@ TABLE_ORDER = [
     "access_control_userrole",
     "navigation_rolemenu",
     "audit_auditlog",
-    "token_blacklist_outstandingtoken",
-    "token_blacklist_blacklistedtoken",
     "todos_todo",
 ]
 UPDATE_ONLY = {"accounts_setupstate"}
@@ -85,6 +83,12 @@ EXCLUDED = {
     "access_control_modulesetting": (
         "Five enabled module flags with null updated_by_id; no model or reader. "
         "Kept in the MySQL backup."
+    ),
+    "token_blacklist_outstandingtoken": (
+        "Outstanding refresh tokens are not copied. Users sign in again after cutover."
+    ),
+    "token_blacklist_blacklistedtoken": (
+        "Blacklisted refresh tokens are not copied. Users sign in again after cutover."
     ),
 }
 COMPATIBLE_TYPES = {

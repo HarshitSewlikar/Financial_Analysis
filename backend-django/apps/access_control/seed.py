@@ -49,14 +49,6 @@ MENU_DEFINITIONS = [
         "sort_order": 50,
     },
     {
-        "code": "menus",
-        "label": "Menus",
-        "path": "/admin/menus",
-        "component_key": "MenusAdminPage",
-        "required_permission": "menus.read",
-        "sort_order": 60,
-    },
-    {
         "code": "audit",
         "label": "Audit Log",
         "path": "/admin/audit",

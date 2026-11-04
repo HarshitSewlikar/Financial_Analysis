@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { queryKeys } from '../../app/queryClient'
+import { AdminPage, Badge, ConfirmDialog } from '../../components/admin/AdminChrome'
 import {
   Button,
   Card,
@@ -36,6 +37,21 @@ const NEXT_STATUS = {
 
 const statusLabel = (value) => value.replace('_', ' ')
 
+const STATUS_TONE = {
+  open: 'info',
+  in_progress: 'warning',
+  blocked: 'danger',
+  completed: 'success',
+  cancelled: 'neutral',
+}
+
+const PRIORITY_TONE = {
+  low: 'neutral',
+  normal: 'neutral',
+  high: 'warning',
+  urgent: 'danger',
+}
+
 const emptyForm = { title: '', description: '', priority: 'normal', due_at: '' }
 
 const TodosPage = () => {
@@ -44,6 +60,7 @@ const TodosPage = () => {
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState({ status: '', priority: '' })
   const [modal, setModal] = useState(null)
+  const [confirmId, setConfirmId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState(null)
 
@@ -107,8 +124,8 @@ const TodosPage = () => {
 
   const columns = [
     { header: 'Title', key: 'title' },
-    { header: 'Status', render: (r) => statusLabel(r.status) },
-    { header: 'Priority', key: 'priority' },
+    { header: 'Status', render: (r) => <Badge tone={STATUS_TONE[r.status] || 'neutral'}>{statusLabel(r.status)}</Badge> },
+    { header: 'Priority', render: (r) => <Badge tone={PRIORITY_TONE[r.priority] || 'neutral'}>{r.priority}</Badge> },
     { header: 'Assignee', render: (r) => r.assignee_username || '—' },
     {
       header: 'Due',
@@ -129,17 +146,12 @@ const TodosPage = () => {
             </Button>
           )}
           {can('todos.update') && (
-            <Button variant="secondary" onClick={() => openEdit(row)}>
+            <Button variant="outline" onClick={() => openEdit(row)}>
               Edit
             </Button>
           )}
           {can('todos.delete') && (
-            <Button
-              variant="danger"
-              onClick={() => {
-                if (window.confirm('Delete this to-do?')) deleteMutation.mutate(row.id)
-              }}
-            >
+            <Button variant="danger" onClick={() => setConfirmId(row.id)}>
               Delete
             </Button>
           )}
@@ -149,42 +161,47 @@ const TodosPage = () => {
   ]
 
   return (
-    <div className="space-y-4">
-      <Card
-        title="To-dos"
-        actions={
-          can('todos.create') && <Button onClick={openCreate}>New to-do</Button>
-        }
-      >
-        <div className="mb-3 flex flex-wrap gap-3">
-          <Select
-            value={filters.status}
-            onChange={(e) => {
-              setPage(1)
-              setFilters((p) => ({ ...p, status: e.target.value }))
-            }}
-          >
-            <option value="">All statuses</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {statusLabel(s)}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={filters.priority}
-            onChange={(e) => {
-              setPage(1)
-              setFilters((p) => ({ ...p, priority: e.target.value }))
-            }}
-          >
-            <option value="">All priorities</option>
-            {PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </Select>
+    <AdminPage
+      title="To-dos"
+      description="Work items for this workspace. Filters apply to the list below."
+      actions={can('todos.create') && <Button onClick={openCreate}>New to-do</Button>}
+    >
+      <Card>
+        <div className="mb-4 flex flex-wrap gap-3 rounded-2xl border border-line bg-indigo-soft p-4">
+          <div className="w-full max-w-xs">
+            <Select
+              label="Status"
+              value={filters.status}
+              onChange={(e) => {
+                setPage(1)
+                setFilters((p) => ({ ...p, status: e.target.value }))
+              }}
+            >
+              <option value="">All statuses</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {statusLabel(s)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-full max-w-xs">
+            <Select
+              label="Priority"
+              value={filters.priority}
+              onChange={(e) => {
+                setPage(1)
+                setFilters((p) => ({ ...p, priority: e.target.value }))
+              }}
+            >
+              <option value="">All priorities</option>
+              {PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </Select>
+          </div>
         </div>
         {todos.isLoading ? (
           <Spinner />
@@ -205,10 +222,24 @@ const TodosPage = () => {
         )}
       </Card>
 
+      {confirmId !== null && (
+        <ConfirmDialog
+          title="Delete this to-do?"
+          message="The to-do will be removed."
+          confirmLabel="Delete"
+          pending={deleteMutation.isPending}
+          onClose={() => setConfirmId(null)}
+          onConfirm={() => {
+            if (deleteMutation.isPending) return
+            deleteMutation.mutate(confirmId, { onSuccess: () => setConfirmId(null) })
+          }}
+        />
+      )}
+
       {modal !== null && (
         <Modal title={modal.id ? 'Edit to-do' : 'New to-do'} onClose={() => setModal(null)}>
           <form onSubmit={submit} className="space-y-3">
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="rounded-xl border border-red-200 bg-negative-soft px-3 py-2 text-sm text-negative" role="alert">{error}</p>}
             <Input
               label="Title"
               value={form.title}
@@ -216,9 +247,9 @@ const TodosPage = () => {
               required
             />
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Description</span>
+              <span className="mb-1.5 block text-sm font-semibold text-ink">Description</span>
               <textarea
-                className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+                className="w-full rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink hover:border-accent/40 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -242,7 +273,7 @@ const TodosPage = () => {
               onChange={(e) => setForm((p) => ({ ...p, due_at: e.target.value }))}
             />
             <div className="flex justify-end gap-2">
-              <Button variant="secondary" type="button" onClick={() => setModal(null)}>
+              <Button variant="outline" type="button" onClick={() => setModal(null)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={saveMutation.isPending}>
@@ -252,7 +283,7 @@ const TodosPage = () => {
           </form>
         </Modal>
       )}
-    </div>
+    </AdminPage>
   )
 }
 

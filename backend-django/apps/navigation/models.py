@@ -70,9 +70,10 @@ class RoleMenu(models.Model):
 
 
 class UserMenuOverride(models.Model):
-    """One user's exception to a role's menu visibility.
+    """Stored per-user menu exceptions. Navigation does not read this table.
 
-    A missing row means inherit the role. SHOW and HIDE replace it.
+    RoleMenu is the source of page visibility. Rows stay until a reviewed
+    migration drops the table.
     """
 
     class Effect(models.TextChoices):

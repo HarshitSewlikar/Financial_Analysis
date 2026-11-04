@@ -25,8 +25,6 @@ export const getUserOverrides = (id) =>
   http.get(`/users/${id}/permission-overrides/`).then((r) => r.data)
 export const setUserOverrides = (id, overrides) =>
   http.put(`/users/${id}/permission-overrides/`, { overrides }).then((r) => r.data)
-export const setUserMenuOverrides = (id, overrides) =>
-  http.put(`/users/${id}/menu-overrides/`, { overrides }).then((r) => r.data)
 
 // --- Roles ---
 export const listRoles = (params = {}) =>
@@ -56,12 +54,6 @@ export const deactivatePermission = (id) => http.delete(`/permissions/${id}/`)
 // --- Menus ---
 export const listMenus = (params = {}) =>
   http.get('/menus/', { params }).then((r) => r.data)
-export const createMenu = (payload) => http.post('/menus/', payload).then((r) => r.data)
-export const updateMenu = (id, payload) =>
-  http.patch(`/menus/${id}/`, payload).then((r) => r.data)
-export const deactivateMenu = (id) => http.delete(`/menus/${id}/`)
-export const getNavigationMenus = () =>
-  http.get('/navigation/menus/').then((r) => r.data)
 
 // --- Todos ---
 export const listTodos = (params = {}) =>
@@ -81,6 +73,12 @@ export const listAudit = (params = {}) =>
 export const auditExportUrl = `${http.defaults.baseURL}/audit-logs/export/`
 
 // --- Market ---
+export const classifySectorSource = (header) => {
+  const value = String(header ?? '').trim().toLowerCase()
+  if (value === 'live' || value === 'mock') return value
+  return 'unknown'
+}
+
 export const getDailyStock = (symbol) =>
   http.get(`/market/stock-daily/${symbol}/`).then((r) => ({
     data: r.data,
@@ -89,7 +87,7 @@ export const getDailyStock = (symbol) =>
 export const getSectors = () =>
   http.get('/market/sector-performance/').then((r) => ({
     data: r.data,
-    source: r.headers['x-data-source'] || 'live',
+    source: classifySectorSource(r.headers['x-data-source']),
   }))
 export const getMovers = () =>
   http.get('/market/movers/').then((r) => ({

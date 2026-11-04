@@ -7,15 +7,21 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer
 } from 'recharts';
 import { format } from 'date-fns';
 import { prepareLineData } from '../utils/chartData';
+import { Card } from './common/Ui';
+
+const chartFrame = 'h-[240px] w-full min-w-0 md:h-[300px]';
 
 const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
     if (!data || data.length === 0) {
-        return <div className="card text-center text-muted">No data available for {title} chart.</div>;
+        return (
+            <Card title={title}>
+                <p className="text-center text-sm text-slate-500">No data available for {title} chart.</p>
+            </Card>
+        );
     }
 
     // Data arrives sorted ascending (oldest first) and already filtered by the
@@ -23,33 +29,43 @@ const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
     const displayData = prepareLineData(data);
 
     return (
-        <div className="card"> {/* Use card class */}
-            <h4 className="card-title">{title}</h4> {/* Use card-title class */}
-            <ResponsiveContainer width="100%" height={300}>
+        <Card title={title}>
+            <div className={chartFrame}>
+            <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                     data={displayData}
                     margin={{
                         top: 10,
-                        right: 30,
-                        left: 0,
+                        right: 16,
+                        left: 8,
                         bottom: 0,
                     }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" />
                     <XAxis
                         dataKey="date"
+                        minTickGap={32}
                         tickFormatter={(value) => format(new Date(value), 'MMM dd')}
                     />
-                    <YAxis domain={['auto', 'auto']} />
+                    <YAxis
+                        domain={['auto', 'auto']}
+                        label={{ value: 'Close', angle: -90, position: 'insideLeft', fill: '#334155', fontSize: 12 }}
+                    />
                     <Tooltip
                         labelFormatter={(label) => `Date: ${format(new Date(label), 'MMM dd, yyyy')}`}
-                        formatter={(value) => [`${value.toFixed(2)}`, tooltipLabel]}
+                        formatter={(value) => [`${Number(value).toFixed(2)}`, tooltipLabel || 'Close']}
                     />
-                    <Legend />
-                    <Line type="monotone" dataKey={dataKey} stroke="#8884d8" activeDot={{ r: 8 }} />
+                    <Line
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke="#4F46E5"
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                    />
                 </LineChart>
             </ResponsiveContainer>
-        </div>
+            </div>
+        </Card>
     );
 };
 

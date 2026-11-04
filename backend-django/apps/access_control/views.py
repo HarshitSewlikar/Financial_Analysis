@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from audit.services import record_audit
-from navigation.models import Menu, RoleMenu, UserMenuOverride
+from navigation.models import Menu, RoleMenu
 
 from . import policy
 from .catalog import REGISTERED_CODES, is_registered
@@ -22,7 +22,6 @@ from .serializers import (
     RoleMenuAssignSerializer,
     RolePermissionAssignSerializer,
     RoleSerializer,
-    UserMenuOverrideAssignSerializer,
     UserPermissionOverrideAssignSerializer,
     UserRoleAssignSerializer,
 )
@@ -422,76 +421,6 @@ class UserPermissionOverridesView(APIView):
         record_audit(
             actor=actor,
             action="user_overrides_updated",
-            resource_type="User",
-            object_id=target.pk,
-            after={"overrides": overrides},
-        )
-        refreshed = User.objects.get(pk=target.pk)
-        return Response(_override_payload(refreshed))
-
-
-class UserMenuOverridesView(APIView):
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [
-                HasAnyPermission("users.read", "menus.read", "menus.assign")()
-            ]
-        return [HasPermission("menus.assign")()]
-
-    def get(self, request, user_id):
-        target = get_object_or_404(User, pk=user_id, deleted_at__isnull=True)
-        return Response(_override_payload(target))
-
-    def put(self, request, user_id):
-        target = get_object_or_404(User, pk=user_id, deleted_at__isnull=True)
-        serializer = UserMenuOverrideAssignSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        overrides = serializer.validated_data["overrides"]
-        actor = request.user
-
-        if target.is_protected_admin:
-            return Response(
-                {"error": {"detail": "Menu overrides cannot be applied to the protected administrator."}},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        if not actor.is_protected_admin:
-            required = {
-                menu.required_permission
-                for menu in Menu.objects.filter(
-                    code__in=[item["menu_code"] for item in overrides]
-                )
-                if menu.required_permission
-            }
-            if not policy.can_grant_permissions(actor, required):
-                return Response(
-                    {"error": {"detail": "You cannot change menus that require permissions you do not hold."}},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
-        with transaction.atomic():
-            locked_user = User.objects.select_for_update().get(pk=target.pk)
-            locked_user.menu_overrides.all().delete()
-            menus = {
-                menu.code: menu
-                for menu in Menu.objects.filter(
-                    code__in=[item["menu_code"] for item in overrides]
-                )
-            }
-            UserMenuOverride.objects.bulk_create(
-                [
-                    UserMenuOverride(
-                        user=locked_user,
-                        menu=menus[item["menu_code"]],
-                        effect=item["effect"],
-                        granted_by=actor,
-                    )
-                    for item in overrides
-                ]
-            )
-        record_audit(
-            actor=actor,
-            action="user_menu_overrides_updated",
             resource_type="User",
             object_id=target.pk,
             after={"overrides": overrides},

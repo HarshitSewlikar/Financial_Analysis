@@ -1,12 +1,12 @@
 # Financial Analytics Dashboard — Django Backend
 
-Django 5 + Django REST Framework backend for the Financial Analytics Dashboard. It provides JWT authentication, role-based access control (RBAC), navigation menus, to-dos, audit logging, and market data integration. The default database is MySQL 8; Microsoft SQL Server is supported via `config/settings_sqlserver.py`.
+Django 5 + Django REST Framework backend for the Financial Analytics Dashboard. It provides JWT authentication, role-based access control (RBAC), navigation menus, to-dos, audit logging, and market data integration. The default database is Microsoft SQL Server via `config/settings_sqlserver.py`. MySQL 8 remains available through `config/settings.py`.
 
 ## Requirements
 
 - Python 3.11+
-- MySQL 8 (InnoDB, `utf8mb4`) — default backend
-- **or** SQL Server with Microsoft ODBC Driver 18 — alternative backend via `settings_sqlserver.py`
+- SQL Server with Microsoft ODBC Driver 18 — default backend via `settings_sqlserver.py`
+- MySQL 8 (InnoDB, `utf8mb4`) — legacy reference via `config.settings`
 - Node.js 18+ (only for the optional stock-score parity test)
 
 ## Setup
@@ -16,7 +16,7 @@ cd backend-django
 python -m venv .venv
 .venv/Scripts/Activate.ps1        # Windows
 # source .venv/bin/activate        # macOS/Linux
-pip install -r requirements.txt
+pip install -r requirements-sqlserver.txt
 ```
 
 Copy the environment template and fill in real values:
@@ -39,7 +39,7 @@ cp .env.example .env
 
 ## Configure the database
 
-### MySQL (default)
+### MySQL (legacy reference)
 
 Create the database and a least-privilege user:
 
@@ -54,23 +54,22 @@ FLUSH PRIVILEGES;
 
 Set `DB_PASSWORD` in `.env` to match the MySQL user password.
 
-### Microsoft SQL Server (alternative)
+### Microsoft SQL Server (default)
 
-`config/settings_sqlserver.py` overrides the database configuration to use the `mssql` backend with Windows Integrated Authentication (`Trusted_Connection=yes`). It uses `mssql-django`, `pyodbc`, and the Microsoft ODBC Driver 18 for SQL Server.
+`config/settings_sqlserver.py` is what `manage.py` loads. It uses the `mssql` backend with Windows Integrated Authentication (`Trusted_Connection=yes`), `mssql-django`, and `pyodbc`. No `DB_PASSWORD` is required.
+
+To use the legacy MySQL module instead:
 
 ```powershell
-$env:DJANGO_SETTINGS_MODULE = "config.settings_sqlserver"
-pip install -r requirements-sqlserver.txt
-python manage.py migrate
+$env:DJANGO_SETTINGS_MODULE = "config.settings"
+pip install -r requirements.txt
 ```
-
-No `DB_PASSWORD` is required for SQL Server.
 
 ## Run migrations and start the server
 
 ```powershell
 python manage.py migrate
-python manage.py seed_rbac      # seeds 22 permissions, 3 roles, 7 menus
+python manage.py seed_rbac      # seeds permissions, roles, and the code-defined pages
 python manage.py runserver 127.0.0.1:8000
 ```
 
@@ -106,11 +105,10 @@ Once an administrator exists, the endpoint returns `410 Gone`. The bootstrapped 
 | GET | `/api/v1/auth/me/` | current user |
 | GET | `/api/v1/auth/me/access/` | effective permissions + menu tree |
 | GET | `/api/v1/auth/csrf/` | CSRF cookie |
-| GET | `/api/v1/navigation/menus/` | visible menu tree |
 | CRUD | `/api/v1/users/` | user administration + roles/overrides sub-routes |
 | CRUD | `/api/v1/roles/` | roles + `/:id/permissions/`, `/:id/menus/` |
 | CRUD | `/api/v1/permissions/` | permission catalog |
-| CRUD | `/api/v1/menus/` | navigation definitions |
+| GET | `/api/v1/menus/` | page catalog for role assignment |
 | CRUD | `/api/v1/todos/` | scoped to-dos + `/assign/`, `/status/` |
 | GET | `/api/v1/audit-logs/` | cursor-paginated audit trail |
 | GET | `/api/v1/audit-logs/export/` | CSV export |

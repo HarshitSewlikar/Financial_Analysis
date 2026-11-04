@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from access_control import policy
 
-from .models import Menu, UserMenuOverride
+from .models import Menu
 
 
 def _role_menu_codes(user) -> set[str]:
@@ -28,21 +28,11 @@ def _role_menu_codes(user) -> set[str]:
     )
 
 
-def _menu_override_effects(user) -> dict[str, str]:
-    if getattr(user, "is_protected_admin", False):
-        return {}
-    rows = UserMenuOverride.objects.filter(
-        user=user, menu__is_active=True
-    ).values_list("menu__code", "effect")
-    return dict(rows)
-
-
 def effective_menu_codes(user) -> set[str]:
     """Menus this user should see.
 
-    The role supplies the default. SHOW and HIDE replace that default for one
-    menu. An inherited menu still stays hidden when its required permission is
-    missing. An explicit SHOW is visibility only; it does not grant the API.
+    Active role-menu assignments are the only source. A required permission
+    still hides a role-granted page. Stored UserMenuOverride rows are ignored.
     """
     if not user or not getattr(user, "is_authenticated", False):
         return set()
@@ -50,17 +40,8 @@ def effective_menu_codes(user) -> set[str]:
         return set()
 
     granted = _role_menu_codes(user)
-    overrides = _menu_override_effects(user)
     visible = set()
-    for menu in Menu.objects.filter(is_active=True):
-        effect = overrides.get(menu.code)
-        if effect == UserMenuOverride.Effect.HIDE:
-            continue
-        if effect == UserMenuOverride.Effect.SHOW:
-            visible.add(menu.code)
-            continue
-        if menu.code not in granted:
-            continue
+    for menu in Menu.objects.filter(is_active=True, code__in=granted):
         if menu.required_permission and not policy.has_permission(
             user, menu.required_permission
         ):
@@ -101,9 +82,9 @@ def visible_menus_for(user) -> list[dict]:
 
 
 def describe_menu_access(user) -> list[dict]:
-    """Role menu grants, stored overrides, and the menus this user can open."""
-    granted = _role_menu_codes(user) if user and user.is_active and not user.deleted_at else set()
-    overrides = _menu_override_effects(user) if user else {}
+    """Role menu grants and the menus this user can open."""
+    active = bool(user and user.is_active and not user.deleted_at)
+    granted = _role_menu_codes(user) if active else set()
     effective = effective_menu_codes(user)
     rows = []
     for menu in Menu.objects.filter(is_active=True).order_by("sort_order", "label"):
@@ -115,7 +96,6 @@ def describe_menu_access(user) -> list[dict]:
                 "path": menu.path,
                 "required_permission": menu.required_permission,
                 "from_role": menu.code in granted,
-                "override": overrides.get(menu.code),
                 "effective": menu.code in effective,
             }
         )

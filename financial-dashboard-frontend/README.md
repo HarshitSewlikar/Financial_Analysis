@@ -13,8 +13,6 @@ All dependencies verified against `package.json`:
 - React Router 7.1.1
 - Recharts 2.15.3
 - Axios 1.9.0
-- React Select 5.10.1
-- React Hook Form, Zod
 - Vitest 5.0.4
 
 ## Installation and Execution
@@ -50,17 +48,15 @@ The modern authentication implementation (`src/features/auth/AuthProvider.jsx` +
 3. **CSRF protection:** non-GET requests attach `X-CSRFToken` read from the `csrftoken` cookie. The SPA fetches `GET /auth/csrf/` on startup.
 4. **Auto-refresh:** on a 401 response, the HTTP interceptor automatically calls `POST /auth/token/refresh/` and retries the original request.
 5. **Logout:** `POST /auth/logout/` blacklists the refresh token and clears the session.
-6. **Protected routes:** `RequireAuth` redirects unauthenticated users to `/login`; `RequireAdmin` redirects non-admins to `/dashboard`.
-
-> Note: `src/context/AuthContext.jsx` and `src/services/api.js` contain an older, unused authentication implementation (localStorage token, fallback URL `http://localhost:5000/api`). They are not wired into the router and are kept only as historical reference.
+6. **Route gate:** `src/app/router.jsx` sends signed-out users to `/login`. Signed-in routes come from the menu tree returned by the API.
 
 ## Frontend Project Structure
 
 ```
 financial-dashboard-frontend/
 ├── src/
+│   ├── App.jsx
 │   ├── app/                    # router, query client, component registry
-│   │   ├── App.jsx
 │   │   ├── componentRegistry.jsx
 │   │   ├── queryClient.js
 │   │   └── router.jsx
@@ -69,42 +65,23 @@ financial-dashboard-frontend/
 │   │   ├── common/Ui.jsx
 │   │   ├── layout/AppLayout.jsx
 │   │   ├── BarChartCard.jsx
-│   │   ├── DataSourceBanner.jsx
-│   │   ├── HeatmapCard.jsx
-│   │   ├── LineChartCard.jsx
-│   │   ├── PieChartCard.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   └── TableComponent.jsx
-│   ├── context/
-│   │   └── AuthContext.jsx     # legacy, unused by router
+│   │   └── LineChartCard.jsx
 │   ├── features/
 │   │   ├── audit/AuditPage.jsx
 │   │   ├── auth/AuthProvider.jsx, BootstrapPage.jsx, LoginPage.jsx, useAccess.js
 │   │   ├── market/MarketDashboardPage.jsx
-│   │   ├── menus/MenusAdminPage.jsx
 │   │   ├── permissions/PermissionsAdminPage.jsx
 │   │   ├── roles/RolesAdminPage.jsx
 │   │   ├── todos/TodosPage.jsx
 │   │   └── users/UsersAdminPage.jsx
-│   ├── hooks/
-│   │   └── useFetchData.js
-│   ├── pages/
-│   │   ├── AdminUsersPage.jsx
-│   │   ├── DashboardPage.jsx
-│   │   └── LoginPage.jsx
 │   ├── services/
-│   │   ├── api.js              # legacy, unused by router
 │   │   ├── endpoints.js
 │   │   └── http.js
-│   ├── styles/
-│   │   ├── Auth.css
-│   │   └── Dashboard.css
 │   ├── test/
 │   │   └── setup.js
 │   ├── utils/
 │   │   ├── chartData.js
 │   │   └── chartData.test.js
-│   ├── assets/react.svg
 │   ├── index.css
 │   └── main.jsx
 ├── index.html

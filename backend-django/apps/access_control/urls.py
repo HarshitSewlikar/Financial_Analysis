@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     PermissionViewSet,
     RoleViewSet,
-    UserMenuOverridesView,
     UserPermissionOverridesView,
     UserRolesView,
 )
@@ -23,10 +22,5 @@ urlpatterns = router.urls + [
         "users/<int:user_id>/permission-overrides/",
         UserPermissionOverridesView.as_view(),
         name="user-permission-overrides",
-    ),
-    path(
-        "users/<int:user_id>/menu-overrides/",
-        UserMenuOverridesView.as_view(),
-        name="user-menu-overrides",
     ),
 ]

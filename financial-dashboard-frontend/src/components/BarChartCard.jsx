@@ -10,10 +10,17 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+import { Card } from './common/Ui';
+
+const chartFrame = 'h-[240px] w-full min-w-0 md:h-[300px]';
 
 const BarChartCard = ({ data, title, barKey, nameKey, barColor }) => {
     if (!data || data.length === 0) {
-        return <div className="card text-center text-muted">No data available for {title} chart.</div>;
+        return (
+            <Card title={title}>
+                <p className="text-center text-sm text-slate-500">No data available for {title} chart.</p>
+            </Card>
+        );
     }
 
     const formattedData = data.map(item => ({
@@ -22,9 +29,9 @@ const BarChartCard = ({ data, title, barKey, nameKey, barColor }) => {
     }));
 
     return (
-        <div className="card"> {/* Use card class */}
-            <h4 className="card-title">{title}</h4> {/* Use card-title class */}
-            <ResponsiveContainer width="100%" height={300}>
+        <Card title={title}>
+            <div className={chartFrame}>
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     data={formattedData}
                     margin={{
@@ -34,7 +41,7 @@ const BarChartCard = ({ data, title, barKey, nameKey, barColor }) => {
                         bottom: 5,
                     }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" />
                     <XAxis dataKey={nameKey} />
                     <YAxis tickFormatter={(value) => `${value}%`} />
                     <Tooltip formatter={(value) => [`${value.toFixed(2)}%`, nameKey]} />
@@ -42,7 +49,8 @@ const BarChartCard = ({ data, title, barKey, nameKey, barColor }) => {
                     <Bar dataKey={barKey} fill={barColor} />
                 </BarChart>
             </ResponsiveContainer>
-        </div>
+            </div>
+        </Card>
     );
 };
 

@@ -84,15 +84,6 @@ class CanManagePermission(BasePermission):
         return policy.has_permission(request.user, "permissions.manage")
 
 
-class CanManageMenu(BasePermission):
-    message = "You are not allowed to manage menus."
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return policy.has_permission(request.user, "menus.read")
-        return policy.has_permission(request.user, "menus.manage")
-
-
 class CanAccessTodo(BasePermission):
     message = "You are not allowed to access this to-do."
 
