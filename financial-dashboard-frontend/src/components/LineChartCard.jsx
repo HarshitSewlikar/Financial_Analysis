@@ -13,13 +13,13 @@ import { format } from 'date-fns';
 import { prepareLineData } from '../utils/chartData';
 import { Card } from './common/Ui';
 
-const chartFrame = 'h-[240px] w-full min-w-0 md:h-[300px]';
+const chartFrame = 'h-[280px] w-full min-w-0 lg:h-[320px]';
 
-const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
+const LineChartCard = ({ data, title, dataKey, tooltipLabel, actions, className = '' }) => {
     if (!data || data.length === 0) {
         return (
-            <Card title={title}>
-                <p className="text-center text-sm text-slate-500">No data available for {title} chart.</p>
+            <Card title={title} actions={actions} className={className}>
+                <p className="text-center text-sm text-ink-secondary">No data available for {title} chart.</p>
             </Card>
         );
     }
@@ -29,27 +29,26 @@ const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
     const displayData = prepareLineData(data);
 
     return (
-        <Card title={title}>
+        <Card title={title} actions={actions} className={className}>
             <div className={chartFrame}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                     data={displayData}
-                    margin={{
-                        top: 10,
-                        right: 16,
-                        left: 8,
-                        bottom: 0,
-                    }}
+                    margin={{ top: 8, right: 12, left: 4, bottom: 0 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" vertical={false} />
                     <XAxis
                         dataKey="date"
                         minTickGap={32}
+                        tick={{ fontSize: 12, fill: '#64748b' }}
                         tickFormatter={(value) => format(new Date(value), 'MMM dd')}
                     />
                     <YAxis
+                        width={72}
                         domain={['auto', 'auto']}
-                        label={{ value: 'Close', angle: -90, position: 'insideLeft', fill: '#334155', fontSize: 12 }}
+                        tick={{ fontSize: 12, fill: '#64748b' }}
+                        tickFormatter={(value) => Number(value).toFixed(0)}
+                        label={{ value: 'Close (USD)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 11 }}
                     />
                     <Tooltip
                         labelFormatter={(label) => `Date: ${format(new Date(label), 'MMM dd, yyyy')}`}
@@ -58,7 +57,8 @@ const LineChartCard = ({ data, title, dataKey, tooltipLabel }) => {
                     <Line
                         type="monotone"
                         dataKey={dataKey}
-                        stroke="#4F46E5"
+                        stroke="#3B82F6"
+                        strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 4 }}
                     />

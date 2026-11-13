@@ -44,11 +44,11 @@ describe('SectorPerformanceChart', () => {
     expect(screen.getByTestId('sector-axis')).toHaveTextContent('0%')
     expect(screen.getByTestId('sector-zero')).toHaveTextContent('0')
     expect(screen.getByText('-0.5%')).toBeInTheDocument()
-    expect(screen.getByText('Information Technology')).toBeInTheDocument()
+    expect(screen.getAllByText('Information Technology')).toHaveLength(2)
     expect(screen.getAllByTestId('sector-cell').map((cell) => cell.getAttribute('data-fill'))).toEqual([
-      '#065f46',
-      '#991b1b',
-      '#64748b',
+      '#16a34a',
+      '#dc2626',
+      '#94a3b8',
     ])
   })
 

@@ -90,6 +90,7 @@ export const AppRoutes = () => {
             element={<RegistryComponent componentKey={menu.component_key} />}
           />
         ))}
+        <Route path="/queries" element={<RegistryComponent componentKey="QueryPage" />} />
         <Route path="/" element={<Navigate to={firstPath} replace />} />
         <Route path="/login" element={<Navigate to={firstPath} replace />} />
         <Route path="*" element={<NotFound />} />

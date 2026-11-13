@@ -72,6 +72,10 @@ export const listAudit = (params = {}) =>
   http.get('/audit-logs/', { params }).then((r) => r.data)
 export const auditExportUrl = `${http.defaults.baseURL}/audit-logs/export/`
 
+// --- Queries ---
+export const submitQuery = (payload) =>
+  http.post('/user-queries/', payload).then((r) => r.data)
+
 // --- Market ---
 export const classifySectorSource = (header) => {
   const value = String(header ?? '').trim().toLowerCase()

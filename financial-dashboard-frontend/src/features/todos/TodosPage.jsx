@@ -3,10 +3,9 @@ import React, { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { queryKeys } from '../../app/queryClient'
-import { AdminPage, Badge, ConfirmDialog } from '../../components/admin/AdminChrome'
+import { AdminPage, Badge, ConfirmDialog, Outlined, PageArt } from '../../components/admin/AdminChrome'
 import {
   Button,
-  Card,
   DataTable,
   Input,
   Modal,
@@ -151,7 +150,7 @@ const TodosPage = () => {
             </Button>
           )}
           {can('todos.delete') && (
-            <Button variant="danger" onClick={() => setConfirmId(row.id)}>
+            <Button variant="danger" icon="trash" onClick={() => setConfirmId(row.id)}>
               Delete
             </Button>
           )}
@@ -164,11 +163,12 @@ const TodosPage = () => {
     <AdminPage
       title="To-dos"
       description="Work items for this workspace. Filters apply to the list below."
-      actions={can('todos.create') && <Button onClick={openCreate}>New to-do</Button>}
+      art={<PageArt name="clipboard" />}
+      actions={can('todos.create') && <Button icon="plus" onClick={openCreate}>New to-do</Button>}
     >
-      <Card>
-        <div className="mb-4 flex flex-wrap gap-3 rounded-2xl border border-line bg-indigo-soft p-4">
-          <div className="w-full max-w-xs">
+      <Outlined tone="tint">
+        <div className="flex flex-wrap gap-4">
+          <div className="w-full sm:max-w-xs sm:flex-1">
             <Select
               label="Status"
               value={filters.status}
@@ -185,7 +185,7 @@ const TodosPage = () => {
               ))}
             </Select>
           </div>
-          <div className="w-full max-w-xs">
+          <div className="w-full sm:max-w-xs sm:flex-1">
             <Select
               label="Priority"
               value={filters.priority}
@@ -203,6 +203,8 @@ const TodosPage = () => {
             </Select>
           </div>
         </div>
+      </Outlined>
+      <Outlined>
         {todos.isLoading ? (
           <Spinner />
         ) : (
@@ -220,7 +222,7 @@ const TodosPage = () => {
             />
           </>
         )}
-      </Card>
+      </Outlined>
 
       {confirmId !== null && (
         <ConfirmDialog

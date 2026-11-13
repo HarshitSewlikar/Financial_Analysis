@@ -10,6 +10,7 @@ api_v1_patterns = [
     path("", include("todos.urls")),
     path("", include("audit.urls")),
     path("", include("market_data.urls")),
+    path("", include("user_queries.urls")),
 ]
 
 urlpatterns = [

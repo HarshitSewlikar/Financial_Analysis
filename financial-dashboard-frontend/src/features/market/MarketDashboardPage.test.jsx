@@ -11,9 +11,10 @@ vi.mock('@tanstack/react-query', async () => {
 })
 
 vi.mock('../../components/LineChartCard', () => ({
-  default: ({ title, data }) => (
+  default: ({ title, data, actions }) => (
     <div>
       {title} points:{data?.length ?? 0}
+      {actions}
     </div>
   ),
 }))
@@ -117,16 +118,16 @@ describe('dashboard market tables', () => {
     expect(screen.getByRole('columnheader', { name: 'Date' })).not.toHaveClass('text-right')
     expect(screen.getByRole('cell', { name: '218.75' })).toHaveClass('text-right', 'tabular-nums')
     expect(screen.getByText('218.75')).toBeInTheDocument()
-    expect(screen.queryByText('$218.75')).not.toBeInTheDocument()
+    expect(screen.queryByRole('cell', { name: '$218.75' })).not.toBeInTheDocument()
     expect(screen.getByText('+24.81')).toBeInTheDocument()
     expect(screen.getByText('2.90%')).toBeInTheDocument()
     expect(screen.getByText('294.60')).toBeInTheDocument()
     expect(screen.getByText('294.78')).toBeInTheDocument()
-    expect(screen.queryByText('$294.60')).not.toBeInTheDocument()
-    expect(screen.queryByText('$294.78')).not.toBeInTheDocument()
+    expect(screen.queryByRole('cell', { name: '$294.60' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('cell', { name: '$294.78' })).not.toBeInTheDocument()
     expect(screen.getAllByText(Number(7301651).toLocaleString())).toHaveLength(2)
-    expect(screen.getByText('Top 10 Gainers (%) #065f46')).toBeInTheDocument()
-    expect(screen.getByText('Top 10 Losers (%) #991b1b')).toBeInTheDocument()
+    expect(screen.getByText('Top 10 Gainers (%) #16a34a')).toBeInTheDocument()
+    expect(screen.getByText('Top 10 Losers (%) #dc2626')).toBeInTheDocument()
     expect(screen.queryByText('Top/Bottom Market Movers')).not.toBeInTheDocument()
   })
 })

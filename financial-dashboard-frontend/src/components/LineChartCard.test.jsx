@@ -31,7 +31,7 @@ describe('LineChartCard', () => {
     expect(screen.getByTestId('close-tooltip')).toHaveTextContent('294.60|Close')
     expect(screen.getByTestId('close-tooltip').textContent).not.toContain('$')
     expect(screen.getByTestId('close-line')).toHaveAttribute('data-dot', 'false')
-    expect(screen.getByTestId('close-line')).toHaveAttribute('data-stroke', '#4F46E5')
+    expect(screen.getByTestId('close-line')).toHaveAttribute('data-stroke', '#3B82F6')
     expect(screen.getByTestId('close-x')).toHaveAttribute('data-gap', '32')
     expect(screen.queryByText('Legend')).not.toBeInTheDocument()
   })

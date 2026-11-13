@@ -20,15 +20,15 @@ export const EmptyState = ({ message }) => (
   </div>
 )
 
-export const Card = ({ title, actions, children, tone = 'default' }) => (
+export const Card = ({ title, actions, children, tone = 'default', className = '' }) => (
   <section
-    className={`rounded-[14px] border p-5 shadow-[0_1px_2px_rgba(23,23,47,0.05),0_16px_36px_-24px_rgba(79,70,229,0.45)] ${
-      tone === 'tint' ? 'border-accent/15 bg-indigo-soft' : 'border-line bg-surface'
-    }`}
+    className={`rounded-xl border p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${
+      tone === 'tint' ? 'border-line bg-surface-muted' : 'border-line bg-surface'
+    } ${className}`}
   >
     {(title || actions) && (
-      <header className="mb-4 flex items-center justify-between gap-3">
-        {title && <h2 className="text-base font-semibold tracking-tight text-ink">{title}</h2>}
+      <header className="mb-3 flex items-center justify-between gap-3">
+        {title && <h2 className="text-[15px] font-semibold tracking-tight text-ink">{title}</h2>}
         {actions}
       </header>
     )}
@@ -36,19 +36,40 @@ export const Card = ({ title, actions, children, tone = 'default' }) => (
   </section>
 )
 
-export const Button = ({ variant = 'primary', className = '', ...props }) => {
+const BUTTON_ICONS = {
+  plus: (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M8 3v10M3 8h10" strokeLinecap="round" />
+    </svg>
+  ),
+  download: (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M8 2.5v7M5.5 7 8 9.5 10.5 7M3.5 13h9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  trash: (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M3.5 4.5h9M6 4.5V3.5h4v1M6.5 7v4M9.5 7v4M4.5 4.5l.5 8h6l.5-8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+}
+
+export const Button = ({ variant = 'primary', className = '', icon, children, ...props }) => {
   const variants = {
     primary: 'btn-primary text-white focus-visible:ring-accent',
-    secondary: 'border border-accent/20 bg-indigo-soft text-accent hover:bg-violet-soft focus-visible:ring-accent',
-    outline: 'border border-line bg-surface text-ink hover:border-accent/40 hover:bg-indigo-soft focus-visible:ring-accent',
-    ghost: 'bg-transparent text-ink-secondary hover:bg-indigo-soft hover:text-accent focus-visible:ring-accent',
+    secondary: 'border border-line bg-surface text-ink hover:bg-surface-muted focus-visible:ring-accent',
+    outline: 'border border-line bg-surface text-ink shadow-sm hover:bg-surface-muted focus-visible:ring-accent',
+    ghost: 'bg-transparent text-ink-secondary hover:bg-surface-muted hover:text-ink focus-visible:ring-accent',
     danger: 'bg-negative text-white shadow-[0_10px_22px_-14px_rgba(185,28,28,0.9)] hover:bg-red-800 focus-visible:ring-negative',
   }
   return (
     <button
-      className={`inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] px-4 text-sm font-semibold transition-[background,box-shadow,filter] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-[background,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
       {...props}
-    />
+    >
+      {BUTTON_ICONS[icon]}
+      {children}
+    </button>
   )
 }
 
@@ -265,7 +286,7 @@ export const DataTable = ({ columns, rows, emptyMessage = 'No records.' }) => {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b-2 border-accent/40 bg-info-soft text-left text-ink">
+          <tr className="sticky top-0 z-10 border-b border-line bg-surface-muted text-left text-xs uppercase tracking-wide text-ink-secondary">
             {columns.map((col) => (
               <th
                 key={col.key || col.header}
@@ -279,7 +300,7 @@ export const DataTable = ({ columns, rows, emptyMessage = 'No records.' }) => {
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={row.id ?? index} className="border-b border-line hover:bg-violet-soft">
+            <tr key={row.id ?? index} className="border-b border-line last:border-0 hover:bg-surface-muted">
               {columns.map((col) => (
                 <td
                   key={col.key || col.header}

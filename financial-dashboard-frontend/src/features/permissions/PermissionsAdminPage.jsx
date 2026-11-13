@@ -7,6 +7,7 @@ import {
   ActiveBadge,
   AdminPage,
   Badge,
+  PageArt,
   ConfirmDialog,
   FormActions,
 } from '../../components/admin/AdminChrome'
@@ -119,6 +120,7 @@ const PermissionsAdminPage = () => {
   return (
     <AdminPage
       title="Permissions"
+      art={<PageArt name="key" />}
       description="These are the individual actions a role can include, such as reading to-dos or exporting the audit log."
       actions={
         user?.is_protected_admin && (

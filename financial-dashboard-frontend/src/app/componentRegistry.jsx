@@ -9,6 +9,7 @@ export const COMPONENT_REGISTRY = {
   RolesAdminPage: lazy(() => import('../features/roles/RolesAdminPage')),
   PermissionsAdminPage: lazy(() => import('../features/permissions/PermissionsAdminPage')),
   AuditPage: lazy(() => import('../features/audit/AuditPage')),
+  QueryPage: lazy(() => import('../features/queries/QueryPage')),
 }
 
 export const resolveComponent = (key) => COMPONENT_REGISTRY[key] || null

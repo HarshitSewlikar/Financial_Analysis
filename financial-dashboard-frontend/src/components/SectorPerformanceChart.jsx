@@ -13,7 +13,7 @@ import {
 
 import { Card } from './common/Ui'
 
-const chartFrame = 'h-[240px] w-full min-w-0 md:h-[300px]'
+const chartFrame = 'h-[280px] w-full min-w-0 lg:h-[320px]'
 
 export const MOCK_SECTOR_MESSAGE =
   'Sector visualization unavailable. Mock data has no defined measurement scale.'
@@ -23,10 +23,10 @@ export const UNKNOWN_SECTOR_MESSAGE =
 
 const shortName = (name) => {
   const text = String(name ?? '')
-  return text.length > 18 ? `${text.slice(0, 16)}…` : text
+  return text.length > 28 ? `${text.slice(0, 26)}…` : text
 }
 
-const SectorPerformanceChart = ({ source, data }) => {
+const SectorPerformanceChart = ({ source, data, preview = false }) => {
   if (source === 'mock') {
     return (
       <Card title="Sector performance">
@@ -35,7 +35,7 @@ const SectorPerformanceChart = ({ source, data }) => {
     )
   }
 
-  if (source !== 'live') {
+  if (!preview && source !== 'live') {
     return (
       <Card title="Sector performance">
         <p className="text-sm text-slate-600">{UNKNOWN_SECTOR_MESSAGE}</p>
@@ -59,20 +59,26 @@ const SectorPerformanceChart = ({ source, data }) => {
             <BarChart
               data={rows}
               layout="vertical"
-              margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+              margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
               <XAxis
                 type="number"
                 domain={[min - pad, max + pad]}
-                tickFormatter={(value) => `${value}%`}
+                tick={{ fontSize: 12, fill: '#64748b' }}
+                tickFormatter={(value) => {
+                  const number = Number(value)
+                  const text = Number.isInteger(number) ? String(number) : number.toFixed(1)
+                  return `${text}%`
+                }}
               />
               <YAxis
                 type="category"
                 dataKey="sector"
-                width={120}
+                width={156}
+                interval={0}
                 tickFormatter={shortName}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: '#334155' }}
               />
               <ReferenceLine x={0} stroke="#94a3b8" />
               <Tooltip
@@ -82,7 +88,7 @@ const SectorPerformanceChart = ({ source, data }) => {
               <Bar dataKey="performance">
                 {rows.map((row) => {
                   const value = Number(row.performance)
-                  const fill = value > 0 ? '#065f46' : value < 0 ? '#991b1b' : '#64748b'
+                  const fill = value > 0 ? '#16a34a' : value < 0 ? '#dc2626' : '#94a3b8'
                   return <Cell key={row.sector} fill={fill} />
                 })}
               </Bar>

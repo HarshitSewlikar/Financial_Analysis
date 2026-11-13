@@ -6,13 +6,15 @@ import {
   ActiveBadge,
   AdminPage,
   Badge,
+  Outlined,
+  PageArt,
+  SearchField,
   ConfirmDialog,
   FormActions,
   groupByResource,
 } from '../../components/admin/AdminChrome'
 import {
   Button,
-  Card,
   DataTable,
   Input,
   Modal,
@@ -140,7 +142,7 @@ const UsersAdminPage = () => {
         row.roles?.length ? (
           <div className="flex max-w-xs flex-wrap gap-1">
             {row.roles.map((role) => (
-              <Badge key={role}>{role}</Badge>
+              <Badge key={role} tone="info">{role}</Badge>
             ))}
           </div>
         ) : (
@@ -162,7 +164,7 @@ const UsersAdminPage = () => {
             Access
           </Button>
           {can('users.deactivate') && row.is_active && (
-            <Button variant="danger" onClick={() => setConfirmUser(row)}>
+            <Button variant="danger" icon="trash" onClick={() => setConfirmUser(row)}>
               Deactivate
             </Button>
           )}
@@ -178,18 +180,19 @@ const UsersAdminPage = () => {
   return (
     <AdminPage
       title="Users"
+      art={<PageArt name="people" />}
       description="Open a user to change their role and permissions."
-      actions={can('users.create') && <Button onClick={openCreate}>New user</Button>}
+      actions={can('users.create') && <Button icon="plus" onClick={openCreate}>New user</Button>}
     >
-      <Card>
-        <div className="mb-4 max-w-md rounded-2xl border border-line bg-indigo-soft p-4">
-          <Input
-            label="Search users"
-            placeholder="Username, name, or email"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-          />
-        </div>
+      <Outlined tone="tint">
+        <SearchField
+          label="Search users"
+          placeholder="Username, name, or email"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+        />
+      </Outlined>
+      <Outlined>
         {users.isLoading ? (
           <Spinner label="Loading users…" />
         ) : users.isError ? (
@@ -200,7 +203,7 @@ const UsersAdminPage = () => {
             <Pagination page={page} pageSize={25} total={users.data?.count} onPageChange={setPage} />
           </>
         )}
-      </Card>
+      </Outlined>
 
       {modal && !modal.accessFor && (
         <Modal title={modal.id ? 'Edit user' : 'New user'} onClose={() => setModal(null)}>

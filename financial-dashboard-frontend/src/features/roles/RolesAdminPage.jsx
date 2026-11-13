@@ -7,13 +7,15 @@ import {
   ActiveBadge,
   AdminPage,
   Badge,
+  Outlined,
+  PageArt,
+  SearchField,
   ConfirmDialog,
   FilterableChecklist,
   FormActions,
 } from '../../components/admin/AdminChrome'
 import {
   Button,
-  Card,
   DataTable,
   Input,
   Modal,
@@ -75,7 +77,7 @@ const RolesAdminPage = () => {
       render: (row) => (
         <button type="button" className="text-left" onClick={() => setModal(row)}>
           <span className="font-semibold text-ink">{row.name}</span>
-          {row.is_system && <Badge tone="warning">Built-in</Badge>}
+          {row.is_system && <Badge tone="warm">Built-in</Badge>}
           <span className="mt-0.5 block text-xs text-ink-muted">{row.code}</span>
         </button>
       ),
@@ -98,7 +100,7 @@ const RolesAdminPage = () => {
             </Button>
           )}
           {can('roles.manage') && !row.is_system && row.is_active && (
-            <Button variant="danger" onClick={() => setConfirmRole(row)}>
+            <Button variant="danger" icon="trash" onClick={() => setConfirmRole(row)}>
               Deactivate
             </Button>
           )}
@@ -110,10 +112,12 @@ const RolesAdminPage = () => {
   return (
     <AdminPage
       title="Roles"
+      art={<PageArt name="layers" />}
       description="A role is a reusable set of permissions. Assign a role to a person instead of ticking every permission one by one."
       actions={
         can('roles.manage') && (
           <Button
+            icon="plus"
             onClick={() => {
               setModal({})
             }}
@@ -123,15 +127,15 @@ const RolesAdminPage = () => {
         )
       }
     >
-      <Card>
-        <div className="mb-4 max-w-md rounded-2xl border border-line bg-indigo-soft p-4">
-          <Input
-            label="Search roles"
-            placeholder="Name, code, or description"
-            value={roleQuery}
-            onChange={(event) => setRoleQuery(event.target.value)}
-          />
-        </div>
+      <Outlined tone="tint">
+        <SearchField
+          label="Search roles"
+          placeholder="Name, code, or description"
+          value={roleQuery}
+          onChange={(event) => setRoleQuery(event.target.value)}
+        />
+      </Outlined>
+      <Outlined>
         {roles.isLoading ? (
           <Spinner label="Loading roles…" />
         ) : (
@@ -145,7 +149,7 @@ const RolesAdminPage = () => {
             }
           />
         )}
-      </Card>
+      </Outlined>
 
       {modal && (
         <RoleEditor

@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "todos",
     "audit",
     "market_data",
+    "user_queries",
 ]
 
 MIDDLEWARE = [

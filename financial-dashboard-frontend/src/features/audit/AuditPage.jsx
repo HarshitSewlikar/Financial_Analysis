@@ -3,9 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { queryKeys } from '../../app/queryClient'
-import { AdminPage } from '../../components/admin/AdminChrome'
-import { Badge } from '../../components/admin/AdminChrome'
-import { Button, Card, DataTable, Input, Select, Spinner } from '../../components/common/Ui'
+import { AdminPage, Badge, Outlined, PageArt } from '../../components/admin/AdminChrome'
+import { Button, DataTable, Input, Select, Spinner } from '../../components/common/Ui'
 import { http } from '../../services/http'
 import { listAudit } from '../../services/endpoints'
 import { usePermission } from '../auth/useAccess'
@@ -15,7 +14,7 @@ const RESOURCE_TYPES = ['User', 'Role', 'Permission', 'Menu', 'Todo']
 const actionTone = (action) => {
   const value = String(action || '').toLowerCase()
   if (value.includes('fail') || value.includes('delete') || value.includes('deactivat')) return 'danger'
-  if (value.includes('create') || value.includes('succeed')) return 'success'
+  if (value.includes('create') || value.includes('succeed') || value.includes('change')) return 'success'
   if (value.includes('update') || value.includes('edit')) return 'warning'
   return 'info'
 }
@@ -50,6 +49,7 @@ const AuditPage = () => {
     queryFn: () =>
       listAudit({
         cursor: cursor || undefined,
+        page_size: 10,
         resource_type: filters.resource_type || undefined,
         search: filters.search || undefined,
       }),
@@ -103,17 +103,18 @@ const AuditPage = () => {
   return (
     <AdminPage
       title="Audit log"
+      art={<PageArt name="document" />}
       description="A record of who changed users, roles, permissions, menus, and to-dos. Use it to check a change after it happens."
       actions={
         can('audit.export') && (
-          <Button variant="secondary" onClick={exportCsv} disabled={exporting} aria-busy={exporting}>
+          <Button icon="download" onClick={exportCsv} disabled={exporting} aria-busy={exporting}>
             {exporting ? 'Exporting…' : 'Export CSV'}
           </Button>
         )
       }
     >
-      <Card>
-        <div className="mb-4 grid gap-3 rounded-2xl border border-line bg-indigo-soft p-4 sm:grid-cols-2">
+      <Outlined tone="tint">
+        <div className="grid gap-4 md:grid-cols-2">
           <Select
             label="Record type"
             value={filters.resource_type}
@@ -136,31 +137,38 @@ const AuditPage = () => {
             onChange={(event) => setSearchInput(event.target.value)}
           />
         </div>
-
+      </Outlined>
+      <Outlined>
         {audit.isLoading ? (
           <Spinner label="Loading audit events…" />
         ) : (
           <>
             <DataTable columns={columns} rows={audit.data?.results || []} emptyMessage={emptyMessage} />
-            <div className="mt-3 flex items-center justify-end gap-2 text-sm">
-              <Button
-                variant="outline"
-                disabled={cursorStack.length <= 1}
-                onClick={() => setCursorStack((s) => s.slice(0, -1))}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                disabled={!audit.data?.next}
-                onClick={() => setCursorStack((s) => [...s, cursorFrom(audit.data.next)])}
-              >
-                Next
-              </Button>
+            <div className="mt-3 flex items-center justify-between gap-2 text-sm text-ink-secondary">
+              <span>
+                Page {cursorStack.length}
+                {audit.data?.results ? ` · ${audit.data.results.length} records` : ''}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={cursorStack.length <= 1}
+                  onClick={() => setCursorStack((s) => s.slice(0, -1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={!audit.data?.next}
+                  onClick={() => setCursorStack((s) => [...s, cursorFrom(audit.data.next)])}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </>
         )}
-      </Card>
+      </Outlined>
     </AdminPage>
   )
 }

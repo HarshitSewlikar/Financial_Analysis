@@ -35,9 +35,9 @@ const LoginPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+        className="w-full max-w-sm space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-[0_12px_28px_-18px_rgba(15,23,42,0.35)]"
       >
-        <h1 className="text-xl font-semibold text-slate-800">Sign in</h1>
+        <h1 className="text-xl font-semibold text-ink">Sign in</h1>
         {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <Input
           label="Username"
