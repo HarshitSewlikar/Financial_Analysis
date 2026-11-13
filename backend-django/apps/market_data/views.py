@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from access_control.permissions import HasPermission
 
-from . import alpha_vantage, cache
+from . import alpha_vantage, cache, sifting
 from .scoring import calculate_stock_score
 
 SYMBOL_RE = r"^[A-Za-z][A-Za-z0-9.\-]{0,14}$"
@@ -32,7 +32,7 @@ class DailyStockView(APIView):
             )
         result = cache.get_or_fetch(
             f"daily_stock_{symbol}",
-            lambda: alpha_vantage.fetch_daily_stock_data(symbol),
+            lambda: sifting.fetch_daily_stock_data(symbol),
         )
         return _respond(result)
 
@@ -42,7 +42,7 @@ class SectorPerformanceView(APIView):
 
     def get(self, request):
         result = cache.get_or_fetch(
-            "sector_performance", alpha_vantage.fetch_sector_performance_data
+            "sector_performance", sifting.fetch_sector_performance_data
         )
         return _respond(result)
 
@@ -52,7 +52,7 @@ class MarketMoversView(APIView):
 
     def get(self, request):
         result = cache.get_or_fetch(
-            "market_movers", alpha_vantage.fetch_market_movers_data
+            "market_movers", sifting.fetch_market_movers_data
         )
         return _respond(result)
 
@@ -71,7 +71,7 @@ class StockScoreView(APIView):
         def compute():
             daily = cache.get_or_fetch(
                 f"daily_stock_{symbol}",
-                lambda: alpha_vantage.fetch_daily_stock_data(symbol),
+                lambda: sifting.fetch_daily_stock_data(symbol),
             )
             score = calculate_stock_score(daily["data"])
             if score is None:

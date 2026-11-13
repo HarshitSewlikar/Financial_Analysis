@@ -174,7 +174,7 @@ def test_score_reuses_cached_daily_series(api, seeded, make_user, monkeypatch):
         return {"data": _flat(20, 100, 2_000_000), "source": "mock"}
 
     monkeypatch.setattr(
-        "market_data.views.alpha_vantage.fetch_daily_stock_data", fake_daily
+        "market_data.views.sifting.fetch_daily_stock_data", fake_daily
     )
     user = make_user("scorer", roles=("standard_user",))
     api.force_authenticate(user=user)
