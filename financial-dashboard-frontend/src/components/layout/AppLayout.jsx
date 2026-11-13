@@ -1,6 +1,6 @@
 // src/components/layout/AppLayout.jsx
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../features/auth/AuthProvider'
 import { useAccess } from '../../features/auth/useAccess'
@@ -30,6 +30,22 @@ const findPageName = (menus, pathname) => {
   }
   return 'Financial Analytics'
 }
+
+const BrandMark = ({ onNavigate }) => (
+  <Link
+    to="/dashboard"
+    onClick={onNavigate}
+    className="flex min-w-0 items-center gap-3 rounded-xl text-white no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  >
+    <span
+      className="btn-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold"
+      aria-hidden="true"
+    >
+      FA
+    </span>
+    <span className="text-base font-semibold leading-tight tracking-tight">Financial Analytics</span>
+  </Link>
+)
 
 const NavMenu = ({ menus, onNavigate }) => (
   <nav className="space-y-4">
@@ -168,10 +184,9 @@ const AppLayout = () => {
   return (
     <div className="flex min-h-screen min-w-0 overflow-x-clip bg-canvas">
       <aside className="app-sidebar hidden w-64 shrink-0 p-4 text-white min-[1024px]:block">
-        <div className="mb-8 flex items-center gap-3">
-          <span className="btn-primary flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold" aria-hidden="true">FA</span>
-          <h1 className="text-base font-semibold leading-tight tracking-tight">Financial Analytics</h1>
-        </div>
+        <h1 className="mb-8">
+          <BrandMark />
+        </h1>
         <NavMenu menus={menus} />
       </aside>
       {isDrawer && open && (
@@ -187,7 +202,9 @@ const AppLayout = () => {
             className="app-sidebar relative flex h-full w-64 flex-col overflow-y-auto p-4 text-white focus-visible:outline-none"
           >
             <div className="mb-8 flex items-start justify-between gap-2">
-              <h1 className="text-base font-semibold leading-tight tracking-tight">Financial Analytics</h1>
+              <h1 className="min-w-0">
+                <BrandMark onNavigate={() => closeDrawer(true)} />
+              </h1>
               <button
                 ref={closeRef}
                 type="button"
