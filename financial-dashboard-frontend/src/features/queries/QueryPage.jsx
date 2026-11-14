@@ -51,7 +51,7 @@ const QueryPage = () => {
   return (
     <AdminPage
       className="mx-auto w-full max-w-[920px]"
-      title="Submit a Query"
+      title="Submit a Request"
       description="Send a question or problem to the team. It is saved with your account."
     >
       <Outlined className="query-card">

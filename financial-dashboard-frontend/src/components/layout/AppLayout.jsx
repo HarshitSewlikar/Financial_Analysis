@@ -90,7 +90,7 @@ const QueryLink = ({ onNavigate }) => (
         strokeLinejoin="round"
       />
     </svg>
-    Submit a Query
+    Submit a Request
   </NavLink>
 )
 
