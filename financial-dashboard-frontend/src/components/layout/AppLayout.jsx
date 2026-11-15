@@ -20,6 +20,8 @@ const NAV_PATHS = {
   roles: 'M12 3 5 6v5c0 4.2 2.9 7.4 7 9 4.1-1.6 7-4.8 7-9V6l-7-3Z',
   permissions: 'M8 11V8a4 4 0 1 1 8 0v3M6 11h12v9H6v-9Z',
   audit: 'M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z',
+  watchlist: 'M7 4h10a1 1 0 0 1 1 1v15l-6-3-6 3V5a1 1 0 0 1 1-1Z',
+  trackers: 'M12 8v4l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z',
 }
 
 const NavIcon = ({ code }) => (
@@ -29,7 +31,7 @@ const NavIcon = ({ code }) => (
 )
 
 const NAV_GROUPS = [
-  { id: 'main', label: 'Main', codes: ['dashboard', 'todos'] },
+  { id: 'main', label: 'Main', codes: ['dashboard', 'todos', 'watchlist', 'trackers'] },
   { id: 'admin', label: 'Admin', codes: ['users', 'roles', 'permissions', 'audit'] },
 ]
 

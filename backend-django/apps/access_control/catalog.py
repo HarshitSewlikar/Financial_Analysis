@@ -63,6 +63,14 @@ REGISTERED_PERMISSIONS: tuple[PermissionDefinition, ...] = (
     PermissionDefinition(
         "market.read", "market", "read", "Access market/finance data"
     ),
+    PermissionDefinition("watchlist.read", "watchlist", "read", "View watchlist items"),
+    PermissionDefinition("watchlist.create", "watchlist", "create", "Create watchlist items"),
+    PermissionDefinition("watchlist.update", "watchlist", "update", "Update watchlist items"),
+    PermissionDefinition("watchlist.delete", "watchlist", "delete", "Delete watchlist items"),
+    PermissionDefinition("trackers.read", "trackers", "read", "View company trackers"),
+    PermissionDefinition("trackers.create", "trackers", "create", "Create company trackers"),
+    PermissionDefinition("trackers.update", "trackers", "update", "Update company trackers"),
+    PermissionDefinition("trackers.delete", "trackers", "delete", "Delete company trackers"),
 )
 
 REGISTERED_CODES: frozenset = frozenset(
@@ -94,12 +102,14 @@ SYSTEM_ROLE_DEFINITIONS: tuple[dict, ...] = (
             "permissions.read",
             "menus.read",
             "market.read",
+            "watchlist.read",
+            "trackers.read",
         ],
     },
     {
         "code": "standard_user",
         "name": "Standard user",
-        "description": "Can manage their own to-dos and view market data.",
+        "description": "Can manage their own to-dos, watchlist notes, and trackers, and can view market data.",
         "permissions": [
             "todos.read",
             "todos.create",
@@ -107,6 +117,14 @@ SYSTEM_ROLE_DEFINITIONS: tuple[dict, ...] = (
             "todos.delete",
             "todos.assign",
             "market.read",
+            "watchlist.read",
+            "watchlist.create",
+            "watchlist.update",
+            "watchlist.delete",
+            "trackers.read",
+            "trackers.create",
+            "trackers.update",
+            "trackers.delete",
         ],
     },
 )

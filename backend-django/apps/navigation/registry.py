@@ -12,5 +12,7 @@ ALLOWED_COMPONENT_KEYS = frozenset(
         "RolesAdminPage",
         "PermissionsAdminPage",
         "AuditPage",
+        "WatchlistPage",
+        "TrackersPage",
     }
 )

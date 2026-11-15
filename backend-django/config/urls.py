@@ -11,6 +11,8 @@ api_v1_patterns = [
     path("", include("audit.urls")),
     path("", include("market_data.urls")),
     path("", include("user_queries.urls")),
+    path("", include("watchlist.urls")),
+    path("", include("trackers.urls")),
 ]
 
 urlpatterns = [

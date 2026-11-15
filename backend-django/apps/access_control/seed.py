@@ -56,6 +56,22 @@ MENU_DEFINITIONS = [
         "required_permission": "audit.read",
         "sort_order": 70,
     },
+    {
+        "code": "watchlist",
+        "label": "Watchlist",
+        "path": "/watchlist",
+        "component_key": "WatchlistPage",
+        "required_permission": "watchlist.read",
+        "sort_order": 22,
+    },
+    {
+        "code": "trackers",
+        "label": "Trackers",
+        "path": "/trackers",
+        "component_key": "TrackersPage",
+        "required_permission": "trackers.read",
+        "sort_order": 24,
+    },
 ]
 
 ROLE_MENUS = {
@@ -69,8 +85,10 @@ ROLE_MENUS = {
         "users",
         "roles",
         "audit",
+        "watchlist",
+        "trackers",
     ],
-    "standard_user": ["dashboard", "todos"],
+    "standard_user": ["dashboard", "todos", "watchlist", "trackers"],
 }
 
 

@@ -76,6 +76,25 @@ export const auditExportUrl = `${http.defaults.baseURL}/audit-logs/export/`
 export const submitQuery = (payload) =>
   http.post('/user-queries/', payload).then((r) => r.data)
 
+// --- Watchlist ---
+export const listWatchlist = (params = {}) =>
+  http.get('/watchlist/', { params }).then((r) => r.data)
+export const createWatchlistItem = (payload) =>
+  http.post('/watchlist/', payload).then((r) => r.data)
+export const updateWatchlistItem = (id, payload) =>
+  http.patch(`/watchlist/${id}/`, payload).then((r) => r.data)
+export const deleteWatchlistItem = (id) => http.delete(`/watchlist/${id}/`)
+export const watchlistSummary = () => http.get('/watchlist/summary/').then((r) => r.data)
+
+// --- Trackers ---
+export const listTrackers = (params = {}) =>
+  http.get('/trackers/', { params }).then((r) => r.data)
+export const createTracker = (payload) => http.post('/trackers/', payload).then((r) => r.data)
+export const updateTracker = (id, payload) =>
+  http.patch(`/trackers/${id}/`, payload).then((r) => r.data)
+export const deleteTracker = (id) => http.delete(`/trackers/${id}/`)
+export const trackerSummary = () => http.get('/trackers/summary/').then((r) => r.data)
+
 // --- Market ---
 export const classifySectorSource = (header) => {
   const value = String(header ?? '').trim().toLowerCase()
